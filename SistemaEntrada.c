@@ -62,6 +62,5 @@ char* rellenarCentinela(char* buffer){
         }
         j++;
     }
-
     return centinela;
 }
