@@ -39,7 +39,7 @@ char sig_caracter(){ // MODIFICAR
 }
 
 char* rellenarCentinela(char* buffer){
-    //Llenamos el buffer centinela con el contenido del buffer original, añadiendo los EOF en la mitad del centinela y al final (tambloque + 1) y (tambloque*2)+1)
+    //Llenamos el buffer centinela con el contenido del buffer original, añadiendo los EOF en la mitad del centinela y al final (tambloque+1) y (tambloque*2)+1)
     char * centinela = (char *) malloc(sizeof(char)*((tamBloque*2)+2));
     int i=0, j=0;
     while(i<(tamBloque*2) || j<((tamBloque*2)+2)){
