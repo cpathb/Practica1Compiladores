@@ -5,11 +5,13 @@
 #include "GestionErrores.h"
 
 #define tamBloque 8
+
 /*
 int main( int argc, const char* argv[] ) {
 
 }
 */
+
 char* rellenarCentinela(char* buffer);
 
 void dameBloqueFichero(char* nombreFichero) {
@@ -42,18 +44,23 @@ char* rellenarCentinela(char* buffer){
     int i=0, j=0;
     while(i<(tamBloque*2) || j<((tamBloque*2)+2)){
         if(j==((tamBloque))){
-            centinela[j]=EOF;
+            centinela[j]='$';
             j++;
         }
         if(j==((tamBloque*2)+1)){
-            centinela[j]=EOF;
+            centinela[j]='$';
             j++;
         }
         if(i<(tamBloque*2)){
-            centinela[j]=buffer[i];
+            if(buffer[i]!=EOF){
+                centinela[j]=buffer[i];
+            }
+            else{ //llegamos al final del fichero
+                centinela[j]='$';
+            }
             i++;
-            j++;
         }
+        j++;
     }
 
     return centinela;
