@@ -4,7 +4,6 @@
 typedef struct{
     char lexema[20];
     int compLex;
-    int linea;
 }tipo;
 
 typedef tipo tipoelem;

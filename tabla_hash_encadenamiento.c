@@ -24,7 +24,7 @@ void DestruirTablaHash (TablaHash t){
      return suma;
  }
  
-//Busca un elemento en la tabla hash y mete el valor de ese elemento
+//Busca un elemento en la tabla hash y mete el valor de ese elemento en el puntero e
 int Busqueda(TablaHash t, char *clave, tipoelem *e){
    posicion p;
    int enc;
