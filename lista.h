@@ -1,23 +1,25 @@
-typedef struct{
-    char nombre[20];
-    char apellido1[20];
-    char apellido2[20];
-    char login[10];
-}tipo_alumno;
+#include <stdlib.h>
+#include "GestionErrores.h"
 
-typedef tipo_alumno tipoelem;
+typedef struct{
+    char lexema[20];
+    int compLex;
+    int linea;
+}tipo;
+
+typedef tipo tipoelem;
 
 struct celda{
-tipoelem elemento;
-struct celda *sig;
+    tipoelem elemento;
+    struct celda *sig;
 };
 
 typedef struct celda * posicion;
 
 struct l{
-posicion inicio;
-unsigned longitud;
-posicion fin;
+    posicion inicio;
+    unsigned longitud;
+    posicion fin;
 };
 
 typedef struct l * lista;
@@ -35,4 +37,5 @@ unsigned longitud(lista l);
 void inserta (lista *l, posicion p, tipoelem e);
 void suprime (lista *l, posicion p);
 void modifica (lista *l, posicion p, tipoelem e);
-posicion posinser (lista l, tipoelem e);
+posicion obtenerPosicion(lista *l, tipoelem e);
+int existeElemento(lista *l, tipoelem e);

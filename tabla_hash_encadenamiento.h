@@ -3,7 +3,7 @@
 #include <string.h>
 #include "lista.h"
 
-#define Tam ****** /*DEFINIR NUMERO de entradas en la tabla.*/
+#define Tam 300 /* Número de entradas de la tabla Hash*/
 
 typedef lista TablaHash[Tam];
 

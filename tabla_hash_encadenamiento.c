@@ -14,21 +14,8 @@ void DestruirTablaHash (TablaHash t){
       destruye(&t[i]);
 }
 
-//FUNCION HASH
+/* Buscar Función Hash */
 
-int Hash (char *cad){
-   int valor;
-   unsigned char *c;
-
-   for (c=cad,valor=0;*c;c++)
-      valor+=(int)(*c);
-
-   return(valor%Tam);
-}
-
-
-/* OTRA FUNCION HASH */
-/*
  int Hash (char *cad){
      int i,suma=0;
      for (i=strlen(cad);i>=0;i--){
@@ -36,8 +23,8 @@ int Hash (char *cad){
      }
      return suma;
  }
-*/
-
+ 
+//Busca un elemento en la tabla hash y mete el valor de ese elemento
 int Busqueda(TablaHash t, char *clave, tipoelem *e){
    posicion p;
    int enc;
@@ -47,7 +34,7 @@ int Busqueda(TablaHash t, char *clave, tipoelem *e){
    enc=0;
    while (p!=fin(t[pos]) && !enc) {
        recupera(t[pos],p,&ele);
-      if (strcmp(ele.login,clave)==0){
+      if (strcmp(ele.lexema,clave)==0){
          enc=1;
          *e=ele;
       }
@@ -62,12 +49,12 @@ int MiembroHash (TablaHash t, tipoelem e){
    posicion p;
    int enc;
    tipoelem elemclave;
-   int pos=Hash(e.login);
+   int pos=Hash(e.lexema);
    p=primero(t[pos]);
    enc=0;
    while (p!=fin(t[pos]) && !enc) {
       recupera(t[pos],p,&elemclave);
-      if (strcmp(e.login,elemclave.login)==0)
+      if (strcmp(e.lexema,elemclave.lexema)==0)
          enc=1;
       else
          p=siguiente(t[pos],p);
@@ -82,7 +69,7 @@ void InsertarHash (TablaHash *t, tipoelem elemento){
    if (MiembroHash(*t,elemento))
       return;
 
-   pos=Hash(elemento.login);
+   pos=Hash(elemento.lexema);
    inserta(&(*t)[pos],primero((*t)[pos]),elemento);
 }
 
@@ -93,14 +80,11 @@ void BorrarHash (TablaHash *t, char *cad){
 
    p=primero((*t)[pos]);
    recupera((*t)[pos],p,&elemclave);
-   while (p!=fin((*t)[pos]) && strcmp(cad,elemclave.login))
-   {
+   while (p!=fin((*t)[pos]) && strcmp(cad,elemclave.lexema)){
       p=siguiente((*t)[pos],p);
       recupera((*t)[pos],p,&elemclave);
    }
-   if (p!=fin((*t)[pos]))
+   if (p!=fin((*t)[pos])){
       suprime(&(*t)[pos],p);
+   }
 }
-
-
-
