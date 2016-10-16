@@ -14,14 +14,14 @@ void DestruirTablaHash (TablaHash t){
       destruye(&t[i]);
 }
 
-/* Buscar Función Hash */
+/* Función Hash que utiliza un número primo para calcularse y asi disminuir el posibke número de colisiones */
 
  int Hash (char *cad){
-     int i,suma=0;
+     int i,hash=0;
      for (i=strlen(cad);i>=0;i--){
-         suma=(suma*256+cad[i])%Tam;
+         hash = (primo * hash + cad[i]) % Tam;
      }
-     return suma;
+     return hash;
  }
  
 //Busca un elemento en la tabla hash y mete el valor de ese elemento en el puntero e

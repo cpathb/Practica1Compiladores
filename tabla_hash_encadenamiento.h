@@ -3,7 +3,9 @@
 #include <string.h>
 #include "lista.h"
 
-#define Tam 300 /* Número de entradas de la tabla Hash*/
+#define Tam 337 /* Número de entradas de la tabla Hash, primo para cuando se recoloque no entre en un bucle infinito*/
+#define primo 89 /* Número primo empleado para hashear*/
+
 
 typedef lista TablaHash[Tam];
 
