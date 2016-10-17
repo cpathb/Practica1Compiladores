@@ -2,7 +2,7 @@
 #include "GestionErrores.h"
 
 typedef struct{
-    char lexema[20];
+    char * lexema;
     int compLex;
 }tipo;
 

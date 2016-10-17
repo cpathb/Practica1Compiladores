@@ -104,8 +104,8 @@ posicion obtenerPosicion(lista *l, tipoelem e){
 		//actual = inicio(l);
 		//final = fin(*l);
 		while(actual!=NULL){ // Comprobamos hasta que no lleguemos al final de la lista
-			if((actual->elemento)==e){ // comprobamos si el elemento en la posicion actual es el que buscamos
-				return	actual;
+			if((actual->elemento.lexema)==e.lexema && (actual->elemento.compLex)==e.compLex){ // comprobamos si el elemento en la posicion actual es el que buscamos
+				return actual;
 			}
 			if(actual!=final){ // Si no estamos al final de la lista vamos al elemento siguiente
 				actual= actual->sig;
@@ -117,7 +117,9 @@ posicion obtenerPosicion(lista *l, tipoelem e){
 	}
 	else{
 		ImprimirError(2);
+		actual=NULL;
 	}
+	return actual;
 }
 
 int existeElemento(lista *l, tipoelem e){
@@ -128,7 +130,7 @@ int existeElemento(lista *l, tipoelem e){
 		actual=(*l)->inicio;
 		final=(*l)->fin;
 		while(actual!=NULL && encontrado==0){ // Comprobamos hasta que no lleguemos al final de la lista
-			if((actual->elemento)==e){ // comprobamos si el elemento en la posicion actual es el que buscamos
+			if((actual->elemento.lexema)==e.lexema && (actual->elemento.compLex)==e.compLex){ // comprobamos si el elemento en la posicion actual es el que buscamos
 				encontrado=1;
 			}
 			if(actual!=final){ // Si no estamos al final de la lista vamos al elemento siguiente
@@ -138,9 +140,9 @@ int existeElemento(lista *l, tipoelem e){
 				actual=NULL;
 			}
 		}
-		return encontrado;
 	}
 	else{
 		ImprimirError(2);
 	}
+	return encontrado;
 }

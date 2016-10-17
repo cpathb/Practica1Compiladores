@@ -45,6 +45,7 @@ int Busqueda(TablaHash t, char *clave, tipoelem *e){
    return enc;
 }
 
+// Función para comprobar si pertenece a la tabla hash
 int MiembroHash (TablaHash t, tipoelem e){
    posicion p;
    int enc;

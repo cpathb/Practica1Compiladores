@@ -1,66 +1,160 @@
 //En este archivo.c se leerá del código fuente bloque a bloque y se introducira en el buffer con doble centinela
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "SistemaEntrada.h"
-#include "GestionErrores.h"
 
-#define tamBloque 8
+// Definición de variables
+int tamBloque;
+FILE * source;
+struct centinela *centinelaInfo;
 
-/*
-int main( int argc, const char* argv[] ) {
+// Definición de funciones
+void rellenarCentinelaIzquierda(char* buffer, struct centinela *cent);
+void rellenarCentinelaDerecha(char* buffer, struct centinela *cent);
+char * dameBloqueFichero(FILE **fichero);
+int siguienteCaracter(char caracter);
 
+void inicializarVariablesSistemaEntrada(){
+    struct stat *fileInformation=malloc(sizeof(struct stat));
+    stat("regression.d", fileInformation);
+    tamBloque=fileInformation->st_blksize;
+    source = fopen("regression.d","rb");
+    centinelaInfo= malloc(sizeof(struct centinela));
+    centinelaInfo->cadena = (char *) malloc(sizeof(char)*((tamBloque*2)+2));
+    centinelaInfo->inicio=0;
+    centinelaInfo->fin=0;
+    // Marcamos mitad y fin de centinela
+    centinelaInfo->cadena[tamBloque]='$';
+    centinelaInfo->cadena[(2*tamBloque)+1]='$';
 }
-*/
 
-char* rellenarCentinela(char* buffer);
-
-void dameBloqueFichero(char* nombreFichero) {
-    FILE * source = fopen(nombreFichero,"rb");
+char * siguienteLexema(){
     char * buffer = (char *) malloc(sizeof(char)*(tamBloque*2));
-    char * centinela = (char *) malloc(sizeof(char)*((tamBloque*2)+2));
-    if(source == NULL){
+    
+    if(source == NULL){ // Comprobamos si no se pudo abrir el archivo en modo lectura
         ImprimirError(1);
-        exit(-1);
+        return NULL;
     }
-    // fread(dónde, tamaño de unidad, cuanto tamaño, origen);
-    int i=1;
-    while(!feof(source)){
-        fread(buffer, sizeof(char), (tamBloque*2), source);
-        centinela = rellenarCentinela(buffer);
-        printf("Lectura %d: \n",i);
-        printf("%s \n",centinela);
-        i++;
+    else{
+        if(!feof(source) || (centinelaInfo->inicio!=(tamBloque*2+1) || centinelaInfo->fin!=(tamBloque*2+1))){ // Comprobamos si llegamos al final del archivo y si el centinela tiene los punteros en el final
+            if(!feof(source) && centinelaInfo->inicio==0 && centinelaInfo->fin==0){ // Si no hemos acabado de leer el archivo y nos encontramos en la posicion inicial leemos un bloque y lo cargamos en la izquierda
+                buffer=dameBloqueFichero(&source);
+                rellenarCentinelaIzquierda(buffer, centinelaInfo);
+            }
+            // Solicitamos siguiente caracter y comprobamos si es un espacio, un operador, llaves, parentesis, una coma, un punto y coma, barra n, barra t o corchetes. Si es así, hemos encontrado un lexema
+            while(centinelaInfo->cadena[centinelaInfo->inicio]==' '||centinelaInfo->cadena[centinelaInfo->inicio]=='\n'||centinelaInfo->cadena[centinelaInfo->inicio]=='\t'){
+                centinelaInfo->fin=centinelaInfo->fin+1;
+                centinelaInfo->inicio=centinelaInfo->fin;
+            }
+
+            while(siguienteCaracter(centinelaInfo->cadena[centinelaInfo->fin])==0){ // Mientras no se encuentre el caracter delimitador se mueve el puntero final en la cadena de 
+                centinelaInfo->fin++;
+            }
+            
+            if(centinelaInfo->cadena[centinelaInfo->inicio]=='$'){
+                return NULL;
+            }
+
+            if(centinelaInfo->inicio!=centinelaInfo->fin){ // Cuando hay mas de un caracter implicado en la comprobación
+                char * lex= (char *) malloc(sizeof(char)*(((centinelaInfo->fin)-centinelaInfo->inicio)+1));
+                strncpy(lex,&centinelaInfo->cadena[centinelaInfo->inicio],(((centinelaInfo->fin)-centinelaInfo->inicio)));
+                centinelaInfo->inicio=centinelaInfo->fin;
+                return lex;
+            }
+            else{ // El elemento es de los anteriores, hay que comprobar su siguiente y ver si es parte del operador o no
+                char * lex= (char *) malloc(sizeof(char)*(((centinelaInfo->fin)-centinelaInfo->inicio)+1));
+                strncpy(lex,&centinelaInfo->cadena[centinelaInfo->inicio],(((centinelaInfo->fin)-centinelaInfo->inicio))+1);
+                centinelaInfo->fin=centinelaInfo->fin+1;
+                centinelaInfo->inicio=centinelaInfo->fin;
+                return lex;
+            }
+        }
+        else{
+            fclose(source); // Cerramos el achivo ya que lo hemos leido completamente y no nos hace falta
+            return NULL;
+        }
     }
-    fclose(source);
+    free(buffer);
 }
 
-char sig_caracter(){ // MODIFICAR
-    return 'p';
+char * dameBloqueFichero(FILE **fichero){
+    char * bloque = (char *) malloc(sizeof(char)*(tamBloque));
+
+    if(!feof(*fichero)){
+        // fread(dónde, tamaño de unidad, cuanto tamaño, origen);
+        fread(bloque, sizeof(char), (tamBloque), *fichero);
+    }
+    else{
+        bloque=NULL;
+    }   
+    return bloque;
 }
 
-char* rellenarCentinela(char* buffer){
-    //Llenamos el buffer centinela con el contenido del buffer original, añadiendo los EOF en la mitad del centinela y al final (tambloque+1) y (tambloque*2)+1)
-    char * centinela = (char *) malloc(sizeof(char)*((tamBloque*2)+2));
-    int i=0, j=0;
-    while(i<(tamBloque*2) || j<((tamBloque*2)+2)){
-        if(j==((tamBloque))){
-            centinela[j]='$';
-            j++;
-        }
-        if(j==((tamBloque*2)+1)){
-            centinela[j]='$';
-            j++;
-        }
-        if(i<(tamBloque*2)){
-            if(buffer[i]!=EOF){
-                centinela[j]=buffer[i];
+int siguienteCaracter(char caracter){
+    int finLexema=0;
+    switch (caracter){ 
+        case 9: // Conjunto de caracteres que delimitan la entrada
+        case 10:
+        case 13:
+        case 32:
+        case 33:
+        case 34:
+        case 35:
+        case 37:
+        case 38:
+        case 39:
+        case 40:
+        case 41:
+        case 42:
+        case 43:
+        case 44:
+        case 45:
+        case 47:
+        case 58:
+        case 59:
+        case 60:
+        case 61:
+        case 62:
+        case 63:
+        case 64:
+        case 91:
+        case 92:
+        case 93:
+        case 94:
+        case 96:
+        case 123:
+        case 124:
+        case 125:
+        case 126:
+            finLexema=1;
+            break;
+        case 36: // Simbolo $, dependiendo de donde aparezca sera delimitador o no.
+            if(centinelaInfo->fin==tamBloque || centinelaInfo->fin==((tamBloque*2)+1)){
+                finLexema=0;
             }
-            else{ //llegamos al final del fichero
-                centinela[j]='$';
+            else{
+                finLexema=1;   
             }
-            i++;
-        }
-        j++;
+        default:
+            finLexema=0;
+            break;
     }
-    return centinela;
+    return finLexema;
+}
+
+void rellenarCentinelaIzquierda(char* buffer, struct centinela *cent){
+    //Llenamos el lado izquierdo del buffer centinela con el contenido del buffer original
+    strncpy(cent->cadena,buffer,tamBloque);
+    cent->cadena[strlen(buffer)]='$';
+}
+
+
+void rellenarCentinelaDerecha(char* buffer, struct centinela *cent){
+    //Llenamos el lado derecho del buffer centinela con el contenido del buffer
+    int i=tamBloque, enc=0;
+    strncpy(&cent->cadena[tamBloque+1],buffer,tamBloque);
+    cent->cadena[((tamBloque+1)+(strlen(buffer)))]='$';
 }
