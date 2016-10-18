@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "SistemaEntrada.h"
+#include "sistemaEntrada.h"
 
 // Definición de variables
 int tamBloque;
@@ -148,13 +148,17 @@ int siguienteCaracter(char caracter){
 void rellenarCentinelaIzquierda(char* buffer, struct centinela *cent){
     //Llenamos el lado izquierdo del buffer centinela con el contenido del buffer original
     strncpy(cent->cadena,buffer,tamBloque);
-    cent->cadena[strlen(buffer)]='$';
+    if(feof(source)){ // Si se ha llegado al final del fichero introducimos al final del buffer el simbolo $ como terminal de la cadena 
+        cent->cadena[strlen(buffer)]='$';
+    }
 }
 
 
 void rellenarCentinelaDerecha(char* buffer, struct centinela *cent){
     //Llenamos el lado derecho del buffer centinela con el contenido del buffer
     int i=tamBloque, enc=0;
-    strncpy(&cent->cadena[tamBloque+1],buffer,tamBloque);
-    cent->cadena[((tamBloque+1)+(strlen(buffer)))]='$';
+    if(feof(source)){ // Si se ha llegado al final del fichero introducimos al final del buffer el simbolo $ como terminal de la cadena 
+        strncpy(&cent->cadena[tamBloque+1],buffer,tamBloque);
+        cent->cadena[((tamBloque+1)+(strlen(buffer)))]='$';
+    }
 }

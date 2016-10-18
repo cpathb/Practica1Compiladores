@@ -2,12 +2,14 @@
 
 /* TABLA HASH CON ENCADENAMIENTO */
 
+// Función para inicializar la tabla Hash
 void InicializarTablaHash (TablaHash t) {
    int i;
    for (i=0;i<Tam;i++)
       crea(&t[i]);
 }
 
+// Función para destruir la tabla hash
 void DestruirTablaHash (TablaHash t){
    int i;
    for (i=0;i<Tam;i++)
@@ -24,64 +26,68 @@ void DestruirTablaHash (TablaHash t){
      return hash;
  }
  
-//Busca un elemento en la tabla hash y mete el valor de ese elemento en el puntero e
+//Busca un elemento en la tabla por la clave hash y mete el valor de ese elemento en el puntero e
 int Busqueda(TablaHash t, char *clave, tipoelem *e){
-   posicion p;
-   int enc;
-   tipoelem ele;
-   int pos=Hash(clave);
-   p=primero(t[pos]);
-   enc=0;
-   while (p!=fin(t[pos]) && !enc) {
-       recupera(t[pos],p,&ele);
-      if (strcmp(ele.lexema,clave)==0){
-         enc=1;
-         *e=ele;
-      }
-      else
-         p=siguiente(t[pos],p);
-   }
-
+    posicion p;
+    int enc;
+    tipoelem ele;
+    int pos=Hash(clave);
+    p=primero(t[pos]);
+    enc=0;
+    while (p!=fin(t[pos]) && !enc) {
+        recupera(t[pos],p,&ele);
+        if (strcmp(ele.lexema,clave)==0){
+            enc=1;
+            *e=ele;
+        }
+        else{
+            p=siguiente(t[pos],p);
+        }
+    }
    return enc;
 }
 
-// Función para comprobar si pertenece a la tabla hash
+// Función para comprobar si el elemento es miembro de la tabla hash
 int MiembroHash (TablaHash t, tipoelem e){
-   posicion p;
-   int enc;
-   tipoelem elemclave;
-   int pos=Hash(e.lexema);
-   p=primero(t[pos]);
-   enc=0;
-   while (p!=fin(t[pos]) && !enc) {
-      recupera(t[pos],p,&elemclave);
-      if (strcmp(e.lexema,elemclave.lexema)==0)
-         enc=1;
-      else
-         p=siguiente(t[pos],p);
-   }
+    posicion p;
+    int enc;
+    tipoelem elemclave;
+    int pos=Hash(e.lexema);
+    p=primero(t[pos]);
+    enc=0;
 
+    while (p!=fin(t[pos]) && !enc){
+        recupera(t[pos],p,&elemclave);
+        if(strcmp(e.lexema,elemclave.lexema)==0 && e.compLex==elemclave.compLex){
+            enc=1;
+         }
+        else{
+             p=siguiente(t[pos],p);
+        }
+    }
    return enc;
 }
 
+// Función para insertar en la tabla
 void InsertarHash (TablaHash *t, tipoelem elemento){
    int pos;
 
-   if (MiembroHash(*t,elemento))
+   if (MiembroHash(*t,elemento)){
       return;
-
+   }
    pos=Hash(elemento.lexema);
    inserta(&(*t)[pos],primero((*t)[pos]),elemento);
 }
 
-void BorrarHash (TablaHash *t, char *cad){
+// Funcion para borrar en la tabla
+void BorrarHash (TablaHash *t, tipoelem elemento){
    posicion p;
    tipoelem elemclave;
-   int pos=Hash(cad);
+   int pos=Hash(elemento.lexema);
 
    p=primero((*t)[pos]);
    recupera((*t)[pos],p,&elemclave);
-   while (p!=fin((*t)[pos]) && strcmp(cad,elemclave.lexema)){
+   while (p!=fin((*t)[pos]) && strcmp(elemento.lexema,elemclave.lexema) && (elemento.compLex==elemclave.compLex)){
       p=siguiente((*t)[pos],p);
       recupera((*t)[pos],p,&elemclave);
    }
@@ -89,3 +95,5 @@ void BorrarHash (TablaHash *t, char *cad){
       suprime(&(*t)[pos],p);
    }
 }
+
+// AÑADIR FUNCION IMPRIMIR TABLAHASH!!
