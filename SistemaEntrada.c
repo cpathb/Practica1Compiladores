@@ -21,7 +21,7 @@ void inicializarVariablesSistemaEntrada(){
     struct stat *fileInformation=malloc(sizeof(struct stat));
     stat("regression.d", fileInformation);
     tamBloque=fileInformation->st_blksize;
-    tamBloque=4;
+    //tamBloque=4;
     source = fopen("regression.d","rb");
     if(source == NULL){ // Comprobamos si no se pudo abrir el archivo en modo lectura
         ImprimirError(1);

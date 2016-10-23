@@ -9,7 +9,9 @@ int numLinea=1;
 // Definiciónd de funciones
 void tratarPrimerCaracter(char caracter, char ** lexema);
 void buscarDelimitadorCadena(char ** lexema);
+void buscarDelimitadorNumero(char ** lexema);
 int delimitadorCadenaEncontrado(char caracter);
+int delimitadorNumero(char caracter);
 
 // Inicio de funciones
 
@@ -80,13 +82,51 @@ void tratarPrimerCaracter(char caracter, char ** lexema){
         case 233 ... 237:
             buscarDelimitadorCadena(lexema);
             break;
+        
+        // Rango Números
+        case 48 ... 57:
+            buscarDelimitadorNumero(lexema);
+            break;
+        
+        // Punto
+        case 46:
+            break;
+        
+        default:
+            break;
+
     }
 }
 
-//
+//  Función que busca el delimitador de una cadena
 void buscarDelimitadorCadena(char ** lexema){
-    int i=0;
     char caracter=siguienteCaracter();
+    int encontrado=0;
+    while(encontrado==0){ // Repetiremos el proceso hasta que se encuentre el delimitador
+        encontrado=delimitadorCadenaEncontrado(caracter);
+        if(encontrado==0){ // Si no se encuentra el delimitador, añadimos el caracter al lexema
+            *lexema = realloc(*lexema,strlen(*lexema)+1); // Reservamos espacio en la cadena para un caracter más
+            strcat(*lexema,&caracter); // Concatenamos el siguiente caracter a la cadena
+            caracter=siguienteCaracter();
+        }
+        else{ // Si se encuentra el delimitador
+            nuevoLexema(); // Actualizamos los punteros del centinela
+        }
+    }
+}
+
+void buscarDelimitadorNumero(char ** lexema){
+    char caracter=siguienteCaracter();
+    // Se comprueba si el siguiente caracter es otro número, punto o letra b/B (Binario) -> Solo 0's y 1's
+    if (*lexema[0]=='0' && (caracter=='b' || caracter=='B')){ // Si empieza por 0 y le sigue una b es binario
+
+    }
+    else{
+        // Se comprueba si el siguiente caracter es otro número, punto o letra x/X (Hexadecimal) -> Solo 0..9a..fA..F
+        if (*lexema[0]=='0' && (caracter=='x' || caracter=='X')){ // Si empieza por 0 y le sigue una b es binario
+
+        }
+    }
     int encontrado=0;
     while(encontrado==0){ // Repetiremos el proceso hasta que se encuentre el delimitador
         encontrado=delimitadorCadenaEncontrado(caracter);
@@ -118,88 +158,3 @@ int delimitadorCadenaEncontrado(char caracter){
             break;
     }
 }
-
-    /*
-            while(comprobarCaracter(centinelaInfo->cadena[centinelaInfo->fin])==0){ // Mientras no se encuentre el caracter delimitador se mueve el puntero final en la cadena de 
-                centinelaInfo->fin++;
-            }
-            
-            if(centinelaInfo->cadena[centinelaInfo->inicio]=='$'){
-                return NULL;
-            }
-
-            if(centinelaInfo->inicio!=centinelaInfo->fin){ // Cuando hay mas de un caracter implicado en la comprobación
-                char * lex= (char *) malloc(sizeof(char)*(((centinelaInfo->fin)-centinelaInfo->inicio)+1));
-                strncpy(lex,&centinelaInfo->cadena[centinelaInfo->inicio],(((centinelaInfo->fin)-centinelaInfo->inicio)));
-                centinelaInfo->inicio=centinelaInfo->fin;
-                return lex;
-            }
-            else{ // El elemento es de los anteriores, hay que comprobar su siguiente y ver si es parte del operador o no
-                char * lex= (char *) malloc(sizeof(char)*(((centinelaInfo->fin)-centinelaInfo->inicio)+1));
-                strncpy(lex,&centinelaInfo->cadena[centinelaInfo->inicio],(((centinelaInfo->fin)-centinelaInfo->inicio))+1);
-                centinelaInfo->fin=centinelaInfo->fin+1;
-                centinelaInfo->inicio=centinelaInfo->fin;
-                return lex;
-            }
-        }
-        else{
-            fclose(source); // Cerramos el achivo ya que lo hemos leido completamente y no nos hace falta
-            return NULL;
-        }
-    
-    }
-    free(buffer);
-*/
-
-/*int comprobarCaracter(char caracter){
-    int finLexema=0;
-    switch (caracter){ 
-        case 9: // Conjunto de caracteres que delimitan la entrada
-        case 10:
-        case 13:
-        case 32:
-        case 33:
-        case 34:
-        case 35:
-        case 37:
-        case 38:
-        case 39:
-        case 40:
-        case 41:
-        case 42:
-        case 43:
-        case 44:
-        case 45:
-        case 47:
-        case 58:
-        case 59:
-        case 60:
-        case 61:
-        case 62:
-        case 63:
-        case 64:
-        case 91:
-        case 92:
-        case 93:
-        case 94:
-        case 96:
-        case 123:
-        case 124:
-        case 125:
-        case 126:
-            finLexema=1;
-            break;
-        case 36: // Simbolo $, dependiendo de donde aparezca sera delimitador o no.
-            if(centinelaInfo->fin==tamBloque || centinelaInfo->fin==((tamBloque*2)+1)){
-                finLexema=0;
-            }
-            else{
-                finLexema=1;   
-            }
-        default:
-            finLexema=0;
-            break;
-    }
-    return finLexema;
-}
-*/

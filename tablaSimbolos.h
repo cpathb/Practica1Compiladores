@@ -2,7 +2,7 @@
 
 #define tamLinea 100
 
-void inicializarTablasimbolos(TablaHash * Tsimbolos);
+void inicializarTablasimbolos();
 void destruirTablasimbolos();
 int obtenerCompLex(char * lexema);
 void ImprimirTablaSimbolos();
