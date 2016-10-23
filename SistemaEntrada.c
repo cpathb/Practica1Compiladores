@@ -21,6 +21,7 @@ void inicializarVariablesSistemaEntrada(){
     struct stat *fileInformation=malloc(sizeof(struct stat));
     stat("regression.d", fileInformation);
     tamBloque=fileInformation->st_blksize;
+    tamBloque=4;
     source = fopen("regression.d","rb");
     if(source == NULL){ // Comprobamos si no se pudo abrir el archivo en modo lectura
         ImprimirError(1);
@@ -67,7 +68,6 @@ char siguienteCaracter(){
     if(centinelaInfo->fin==tamBloque){ // Si el puntero del final de la cadena llega a la mitad del buffer centinela cargamos el siguiente bloque a la derecha
         rellenarCentinelaDerecha(dameBloqueFichero(&source),centinelaInfo);
     }
-    
 
     if(centinelaInfo->fin==((2*tamBloque)+1)){ // Si el puntero del final llega al final del buffer centinela se carga el siguiente bloque a la izquierda
         rellenarCentinelaIzquierda(dameBloqueFichero(&source),centinelaInfo);
@@ -85,6 +85,13 @@ char siguienteCaracter(){
 
     if(centinelaInfo->fin==((2*tamBloque)+1)){ // Si antes de incrementar la posición del puntero fin estamos en el final del centinela, volvemos a la posición 0 del centinela
         centinelaInfo->fin=0;
+        /* // QUIZAS NO ES NECESARIO PARA NADA
+        if(centinelaInfo->mitad==2){ // Está en ambas mitades
+            // ERROR PORQUE NO SE PUEDE VOLVER A CARGAR, DEVOLVEMOS UN DELIMITADOR PARA QUE ACABE DE BUSCARLO Y PODAMOS CARGAR
+            caracter=" ";
+            centinelaInfo->mitad=0;
+        }
+        */
     }
     else{
         centinelaInfo->fin++;
