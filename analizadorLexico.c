@@ -123,7 +123,7 @@ void buscarDelimitadorNumero(char ** lexema){
     }
     else{
         // Se comprueba si el siguiente caracter es otro número, punto o letra x/X (Hexadecimal) -> Solo 0..9a..fA..F
-        if (*lexema[0]=='0' && (caracter=='x' || caracter=='X')){ // Si empieza por 0 y le sigue una b es binario
+        if (*lexema[0]=='0' && (caracter=='x' || caracter=='X')){ // Si empieza por 0 y le sigue una X es Hexadecimal
 
         }
     }
