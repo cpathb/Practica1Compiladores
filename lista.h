@@ -1,12 +1,12 @@
 #include <stdlib.h>
 #include "GestionErrores.h"
 
-typedef struct{
+struct tipo{
     char * lexema;
     int compLex;
-}tipo;
+};
 
-typedef tipo tipoelem;
+typedef struct tipo tipoelem;
 
 struct celda{
     tipoelem elemento;

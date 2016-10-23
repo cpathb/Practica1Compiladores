@@ -66,7 +66,6 @@ unsigned longitud(lista l){
 
 void inserta(lista *l, posicion p, tipoelem e){
     posicion q;
-
     q = p->sig;
 
     p->sig = (posicion)malloc(sizeof(struct celda));
@@ -94,6 +93,7 @@ void modifica(lista *l, posicion p, tipoelem e){
     (p->sig)->elemento = e;
 }
 
+/* //SOBRA¿?
 //Función para obtener la posición de un elemento en la lista
 posicion obtenerPosicion(lista *l, tipoelem e){
 	posicion actual;
@@ -101,8 +101,6 @@ posicion obtenerPosicion(lista *l, tipoelem e){
 	if (existe(*l)){ // Comprobamos que existe la lista en la que vamos a buscar
 		actual=(*l)->inicio;
 		final=(*l)->fin;
-		//actual = inicio(l);
-		//final = fin(*l);
 		while(actual!=NULL){ // Comprobamos hasta que no lleguemos al final de la lista
 			if((actual->elemento.lexema)==e.lexema && (actual->elemento.compLex)==e.compLex){ // comprobamos si el elemento en la posicion actual es el que buscamos
 				return actual;
@@ -146,3 +144,4 @@ int existeElemento(lista *l, tipoelem e){
 	}
 	return encontrado;
 }
+*/
