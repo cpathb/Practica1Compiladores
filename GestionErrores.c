@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "gestionErrores.h"
 
-void ImprimirError(int codigo){
+void ImprimirError(int codigo, int linea){
      switch (codigo){
         case 1:
             printf("Error al abrir el fichero a compilar.\n");
@@ -15,6 +15,12 @@ void ImprimirError(int codigo){
             break;
         case 4:
             printf("Error al abrir el fichero definiciones a introducir en la tabla de símbolos.\n");
+            break;
+        case 5:
+            printf("Símbolo no esperado en la línea %d.\n",linea);
+            break;
+        case 6:
+            printf("Se ha encontrado un caracter inesperado en el identificador.\n",linea);
             break;
         default:
             printf("Error no identificado.\n");

@@ -1,1 +1,1 @@
-void ImprimirError(int codigo);
+void ImprimirError(int codigo, int linea);

@@ -147,3 +147,5 @@
 #define __traits 405
 #define __vector 406
 #define __parameters 407
+
+// Operadores y separadores especiales (, y ;)
