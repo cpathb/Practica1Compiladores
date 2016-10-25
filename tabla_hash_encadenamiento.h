@@ -1,3 +1,10 @@
+/* 
+ * File:   tablahash.h
+ * Author: puri
+ *
+ * Created on 24 de noviembre de 2011, 12:47
+ */
+ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
