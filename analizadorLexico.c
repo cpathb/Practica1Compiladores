@@ -10,6 +10,8 @@ int numLinea=1;
 void tratarPrimerCaracter(char caracter, char ** lexema);
 void buscarDelimitadorCadena(char ** lexema);
 void buscarDelimitadorNumero(char ** lexema);
+void buscarDelimitadorComillaSimple(char ** lexema);
+void buscarDelimitadorComillaDoble(char ** lexema);
 int delimitadorCadenaEncontrado(char caracter);
 int delimitadorNumeroEncontrado(char caracter, char ** lexema);
 int delimitadorNumeroDecimalEncontrado(char caracter, char ** lexema);
@@ -28,15 +30,18 @@ int siguienteLexema(char ** lexema){
     }
     if(*lexema[0]=='$'){ // Si se encuentra un $ como inicio de cadena, esto indica que se ha llegado al final del archivo a compilar
         *lexema=NULL; // Cambiamos el contenido del puntero a NULL para que se paren de pedir lexemas en el analizador sintáctico
-        return 0;
+        return -1;
     }
     else{ // Si es cualquier otro caracter distinto de $, \n, \t,  
-        // Se comprueba el primer caracter y a partir de ahí se busca un delimitador que lo finalice
-        tratarPrimerCaracter(*lexema[0],lexema); // Se pasa un puntero a la cadena para realojar memoría cuando sea necesario
+        // Se comprueba el primer caracter y a partir de ahí se busca un delimitador que lo finalice, mientras el primer caracter no se \n, que es lo que emplearemos para recuperarnos de errores
+        while(*lexema[0]=='\n'){        
+            tratarPrimerCaracter(*lexema[0],lexema); // Se pasa un puntero a la cadena para realojar memoría cuando sea necesario
+        }
         if(*lexema[0]=='$'){ // Si se encuentra un $ como inicio de cadena, esto indica que se ha llegado al final del archivo a compilar
             *lexema=NULL; // Cambiamos el contenido del puntero a NULL para que se paren de pedir lexemas en el analizador sintáctico
-            return 0;
+            return -1;
         }
+        
     }
     return obtenerCompLex(*lexema);
 }
@@ -50,7 +55,8 @@ int siguienteLexema(char ** lexema){
         * Si se encuentra punto se entra en un nuevo estado en el que se continua hasta alcanzar un delimitador (No puede ser punto, si es error)
         * Si es un binario se acaba al llegar a un delimitador o algo no esperado
         * Si es un hexadecimal se acaba al llegar a un delimitador o algo no esperado
-
+        * Si se encuentra una e/E es exponencial, por lo tanto se comprueba que luego aparezca +, - o número
+        
     Estado 3: Empieza por comillas dobles "
         * Acaba al encontrar las siguientes comillas dobles ", EXCEPTO SI ANTES HAY UN \
         * Si no acaba en la misma línea es un error
@@ -96,12 +102,12 @@ void tratarPrimerCaracter(char caracter, char ** lexema){
         
         // Comillas dobles
         case 34:
-            //buscarDelimitadorComillaSimple
+            buscarDelimitadorComillaSimple(lexema);
             break;
 
         // Comillas simples
         case 39:
-            //buscarDelimitadorComillaSimple
+            //buscarDelimitadorComillaDoble(lexema);
             break;
 
         // Dolar
@@ -120,7 +126,9 @@ void tratarPrimerCaracter(char caracter, char ** lexema){
     }
 }
 
-//  Función que busca el delimitador de una cadena
+// Funciones de busqueda de delimitadores
+
+//  Función que busca el delimitador de un lexema que empieza por una letra o _
 void buscarDelimitadorCadena(char ** lexema){
     char caracter=siguienteCaracter();
     int encontrado=0;
@@ -132,11 +140,13 @@ void buscarDelimitadorCadena(char ** lexema){
             caracter=siguienteCaracter();
         }
         else{ // Si se encuentra el delimitador
+            devolverCaracter();
             nuevoLexema(); // Actualizamos los punteros del centinela
         }
     }
 }
 
+//  Función que busca el delimitador de un lexema que empieza por un número
 void buscarDelimitadorNumero(char ** lexema){
     int encontrado=0;
     char caracter=siguienteCaracter();
@@ -170,6 +180,89 @@ void buscarDelimitadorNumero(char ** lexema){
     }
 }
 
+//  Función que busca el delimitador de un lexema que empieza por '
+void buscarDelimitadorComillaSimple(char ** lexema){
+    char caracter=siguienteCaracter();
+    int encontrado=0;
+    while(encontrado==0){ // Repetiremos el proceso hasta que se encuentre el delimitador
+        if(caracter=='\''){ // Si encontramos comilla se ha llegado al delimitador, sino puede aparecer cualquier cosa
+            encontrado=1;
+        }
+        else{
+            if(caracter=='\n'){ // Si encontramos el \n error al delimitar el literal
+                ImprimirError(7,numLinea);
+                *lexema=realloc(*lexema,1);
+                *lexema[0]=caracter;
+                encontrado=1;
+            }
+            else{
+                if(caracter=='\\'){ // Si aparece barra invertida y el siguiente es ' no cuenta como final
+                    caracter=siguienteCaracter();
+                    if(caracter=='\''){
+                        *lexema = realloc(*lexema,strlen(*lexema)+1); // Reservamos espacio en la cadena para un caracter más
+                        caracter='\\'; // Insertamos la \ ya que abajo insertamos la continuación 
+                        strcat(*lexema,&caracter); // Concatenamos el siguiente caracter a la cadena
+                        caracter='\'';
+                        encontrado=0;
+                    }
+                }
+            }
+        }
+        if(encontrado==0){ // Si no se encuentra el delimitador, añadimos el caracter al lexema
+            *lexema = realloc(*lexema,strlen(*lexema)+1); // Reservamos espacio en la cadena para un caracter más
+            strcat(*lexema,&caracter); // Concatenamos el siguiente caracter a la cadena
+            caracter=siguienteCaracter();
+        }
+        else{ // Si se encuentra el delimitador
+            devolverCaracter();
+            nuevoLexema(); // Actualizamos los punteros del centinela
+        }
+    }
+}
+
+//  Función que busca el delimitador de un lexema que empieza por "
+void buscarDelimitadorComillaDoble(char ** lexema){
+    char caracter=siguienteCaracter();
+    int encontrado=0;
+    while(encontrado==0){ // Repetiremos el proceso hasta que se encuentre el delimitador
+        if(caracter=='\"'){ // Si encontramos comilla se ha llegado al delimitador, sino puede aparecer cualquier cosa
+            encontrado=1;
+        }
+        else{
+            if(caracter=='\n'){ // Si encontramos el \n error al delimitar el literal
+                ImprimirError(8,numLinea);
+                *lexema=realloc(*lexema,1);
+                *lexema[0]=caracter;
+                encontrado=1;
+            }
+            else{
+                if(caracter=='\\'){ // Si aparece barra invertida y el siguiente es " no cuenta como final
+                    caracter=siguienteCaracter();
+                    if(caracter=='\"'){
+                        *lexema = realloc(*lexema,strlen(*lexema)+1); // Reservamos espacio en la cadena para un caracter más
+                        caracter='\\'; // Insertamos la \ ya que abajo insertamos la continuación 
+                        strcat(*lexema,&caracter); // Concatenamos el siguiente caracter a la cadena
+                        caracter='\"';
+                        encontrado=0;
+                    }
+                }
+            }
+        }
+        if(encontrado==0){ // Si no se encuentra el delimitador, añadimos el caracter al lexema
+            *lexema = realloc(*lexema,strlen(*lexema)+1); // Reservamos espacio en la cadena para un caracter más
+            strcat(*lexema,&caracter); // Concatenamos el siguiente caracter a la cadena
+            caracter=siguienteCaracter();
+        }
+        else{ // Si se encuentra el delimitador
+            devolverCaracter();
+            nuevoLexema(); // Actualizamos los punteros del centinela
+        }
+    }
+}
+
+
+// Funciones de identificación de delimitadores
+
 // Función que busca un delimitador válido para un identificador
 int delimitadorCadenaEncontrado(char caracter){
     switch (caracter){ 
@@ -182,7 +275,8 @@ int delimitadorCadenaEncontrado(char caracter){
         case 96: // `
         case 123 ... 126: // { | } ~
             return 1;
-            break; 
+            break;
+
         default:
             return 0;
             break;
@@ -204,6 +298,7 @@ int delimitadorNumeroEncontrado(char caracter, char ** lexema){
         case 123 ... 126: //{ | } ~
             return 1;
             break;
+
         case 46: // .
             while(encontrado==0){ // Buscamos un delimitador de decimal a partir de ahora el numero será decimal
                 encontrado=delimitadorNumeroDecimalEncontrado(caracter, lexema);
@@ -212,13 +307,18 @@ int delimitadorNumeroEncontrado(char caracter, char ** lexema){
                     strcat(*lexema,&caracter); // Concatenamos el siguiente caracter a la cadena
                     caracter=siguienteCaracter();
                 }
-                else{
-                    devolverCaracter();
-                    nuevoLexema(); // Actualizamos los punteros del centinela
-                }
             }
-        default:
+            return 1;
+            break;
+        
+        case 48 ... 57: // Rango de números
+        case 95: // _ 
             return 0;
+            break;
+        
+        default:
+            ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+            return 1;
             break;
     }
 }
@@ -238,12 +338,15 @@ int delimitadorNumeroDecimalEncontrado(char caracter, char ** lexema){
         case 123 ... 126: //{ | } ~
             return 1;
             break;
-        case 48 ... 57:
+
+        case 48 ... 57: // Rango de números
         case 95: // _ 
             return 0;
             break;
+
         default:
             ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+            return 1;
             break;
     }
 }
