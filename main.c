@@ -8,9 +8,7 @@ int main( int argc, const char* argv[] ){
     int compLex=-1;
     inicializarTablasimbolos(); // Primero tabla de simbolos porque abre un archivo y lo cierra al acabar
     inicializarVariablesSistemaEntrada(); // Abre el archivo y no lo cierra hasta que acaba de leerlo
-    printf("\n");
-    printf("\n");
-    printf("\n");
+    
     //while(lex!=NULL){
     compLex=siguienteLexema(&lex); 
     printf("%s -- %d\n",lex,compLex);

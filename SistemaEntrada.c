@@ -24,7 +24,7 @@ void inicializarVariablesSistemaEntrada(){
     //tamBloque=4;
     source = fopen("regression.d","rb");
     if(source == NULL){ // Comprobamos si no se pudo abrir el archivo en modo lectura
-        ImprimirError(1);
+        ImprimirError(1,0); // No tiene un número de línea asociado, ya que es de inicialización del compilador
     }
     else{
         centinelaInfo=malloc(sizeof(struct centinela));

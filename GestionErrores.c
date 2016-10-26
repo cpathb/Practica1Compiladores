@@ -5,7 +5,7 @@
 void ImprimirError(int codigo, int linea){
      switch (codigo){
         case 1:
-            printf("Error al abrir el fichero a compilar.\n");
+            printf("Error al abrir el fichero a compilar en el sistema de entrada.\n");
             break;
 
         case 2:
@@ -17,7 +17,7 @@ void ImprimirError(int codigo, int linea){
             break;
 
         case 4:
-            printf("Error al abrir el fichero definiciones a introducir en la tabla de símbolos.\n");
+            printf("Error al abrir el fichero de palabras reservadas a introducir en la tabla de símbolos.\n");
             break;
 
         case 5:

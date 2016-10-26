@@ -34,8 +34,16 @@ int siguienteLexema(char ** lexema){
     }
     else{ // Si es cualquier otro caracter distinto de $, \n, \t,  
         // Se comprueba el primer caracter y a partir de ahí se busca un delimitador que lo finalice, mientras el primer caracter no se \n, que es lo que emplearemos para recuperarnos de errores
-        while(*lexema[0]=='\n'){        
+        int problema=1; // Variable que valdrá uno cuando
+        while(problema==1){        
             tratarPrimerCaracter(*lexema[0],lexema); // Se pasa un puntero a la cadena para realojar memoría cuando sea necesario
+            if(*lexema[0]=='\n'){ // Si hay un error en la funcion previamente invocada, se pondra el valor del caracter inicial a \n, por lo que podrémos repetir el proceso a partir de donde sucedió el error
+                problema=1;
+                *lexema[0]=siguienteCaracter();
+            }
+            else{
+                problema=0;
+            }
         }
         if(*lexema[0]=='$'){ // Si se encuentra un $ como inicio de cadena, esto indica que se ha llegado al final del archivo a compilar
             *lexema=NULL; // Cambiamos el contenido del puntero a NULL para que se paren de pedir lexemas en el analizador sintáctico
@@ -97,17 +105,17 @@ void tratarPrimerCaracter(char caracter, char ** lexema){
         
         // Rango Números
         case 48 ... 57:
-            buscarDelimitadorNumero(lexema);
+            //buscarDelimitadorNumero(lexema);
             break;
         
         // Comillas dobles
         case 34:
-            buscarDelimitadorComillaSimple(lexema);
+            //buscarDelimitadorComillaDoble(lexema);
             break;
 
         // Comillas simples
         case 39:
-            //buscarDelimitadorComillaDoble(lexema);
+            //buscarDelimitadorComillaSimple(lexema);
             break;
 
         // Dolar
@@ -116,6 +124,11 @@ void tratarPrimerCaracter(char caracter, char ** lexema){
 
         // Punto
         case 46:
+            break;
+
+        // \n 
+        case 10:
+            numLinea++;
             break;
 
         default:
@@ -276,10 +289,30 @@ int delimitadorCadenaEncontrado(char caracter){
         case 123 ... 126: // { | } ~
             return 1;
             break;
-
-        default:
+        
+        // Rango de _ , letras Mayusculas/minusculas, también ñ acentos y cedillas
+        case 65 ... 90:
+        case 95: // _
+        case 97 ... 122: 
+        case 128 ... 144:
+        case 147 ... 154:
+        case 160 ... 165:
+        case 181 ... 183:
+        case 198 ... 199:
+        case 210 ... 212:
+        case 214 ... 216:
+        case 222:
+        case 224:
+        case 226 ... 229:
+        case 233 ... 237:
             return 0;
             break;
+
+        default:
+            ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+            return 1;
+            break;
+            
     }
 }
 

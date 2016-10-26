@@ -1,32 +1,33 @@
+#include <string.h>
 #include "tablaSimbolos.h" 
 #include "gestionErrores.h"
-#include <string.h>
+#include "definiciones.h"
 
 //Definicion de funciones
-void insertarDefinicionesValor();
+void insertarReservadasValor();
 
 // Definición de variables
 TablaHash tablaSimbolos;
-int valorIdentificador;
+int valorIdentificador=0;
 
 // Función para inicializar la tabla de simbolos
 void inicializarTablasimbolos(){ 
     InicializarTablaHash(tablaSimbolos);
-    insertarDefinicionesValor();
+    insertarReservadasValor();
 }
 // Función para destruir la tabla de símbolos
 void destruirTablasimbolos(){ 
     DestruirTablaHash(tablaSimbolos);
 }
 
-// Función para insertar los lexemas del archivo de definiciones en la tabla de símbolos
-void insertarDefinicionesValor(){
+// Función para insertar los lexemas del archivo de palaras reservadass en la tabla de símbolos
+void insertarReservadasValor(){
     FILE * fichero;
     char *loc, *valor;
-    fichero = fopen("definiciones.h","r");
+    fichero = fopen("Reservadas.h","r");
     tipoelem * elemento;
     if (fichero == NULL){ // Error al abrir el archivo
-        ImprimirError(4);
+        ImprimirError(4,0); // No tiene un número de línea asociado, ya que es de inicialización del compilador
     }
     else{
         char sobras;
@@ -47,6 +48,7 @@ void insertarDefinicionesValor(){
                     //printf("Insertado: %s -- %d\n",elemento.lexema,elemento.compLex);
                     InsertarHash(&tablaSimbolos,*elemento); // Insertamos el elemento en la tabla hash
                     valorIdentificador=elemento->compLex+1;// Modificamos el valor del número para el identificador al del ultimo insertado en la tabla de símbolos desde el fichero
+                    printf("%d -- Valor de Identificador actual: %d\n",elemento->compLex,valorIdentificador); //BORRAR
                     free(valor); //Liberamos la variable valor
                 }
                 free(loc); // Libero la variable linea de codigo
@@ -54,7 +56,10 @@ void insertarDefinicionesValor(){
         sobras= fgetc(fichero); // Consumimos el \n
         } while(sobras!=EOF); // Mientras no llegamos al final del archivo
         fclose(fichero); // Cerramos el archivo
+        /* //Imprime el contenido inicial de la tabla de símbolos
+        printf("Contenido inicial de la tabla de símbolos:\n");
         ImprimirTablaSimbolos();
+        */
     }
 }
 
