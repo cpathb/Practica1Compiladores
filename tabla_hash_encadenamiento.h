@@ -10,9 +10,10 @@
 #include <string.h>
 #include "lista.h"
 
-#define TamHash 997 // Número de entradas de la tabla Hash, primo para cuando se recoloque no entre en un bucle infinito
+#define TamHash 503 // Número de entradas de la tabla Hash, primo para cuando se recoloque no entre en un bucle infinito
 #define primo 89 // Número primo empleado para la funcion hash
 
+#pragma once
 
 typedef lista TablaHash[TamHash];
 

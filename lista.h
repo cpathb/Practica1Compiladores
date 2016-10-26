@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "GestionErrores.h"
+#pragma once
 
 struct tipo{
     char * lexema;

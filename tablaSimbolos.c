@@ -24,7 +24,7 @@ void destruirTablasimbolos(){
 void insertarReservadasValor(){
     FILE * fichero;
     char *loc, *valor;
-    fichero = fopen("Reservadas.h","r");
+    fichero = fopen("reservadas.h","r");
     tipoelem * elemento;
     if (fichero == NULL){ // Error al abrir el archivo
         ImprimirError(4,0); // No tiene un número de línea asociado, ya que es de inicialización del compilador
@@ -48,7 +48,6 @@ void insertarReservadasValor(){
                     //printf("Insertado: %s -- %d\n",elemento.lexema,elemento.compLex);
                     InsertarHash(&tablaSimbolos,*elemento); // Insertamos el elemento en la tabla hash
                     valorIdentificador=elemento->compLex+1;// Modificamos el valor del número para el identificador al del ultimo insertado en la tabla de símbolos desde el fichero
-                    printf("%d -- Valor de Identificador actual: %d\n",elemento->compLex,valorIdentificador); //BORRAR
                     free(valor); //Liberamos la variable valor
                 }
                 free(loc); // Libero la variable linea de codigo
@@ -56,7 +55,8 @@ void insertarReservadasValor(){
         sobras= fgetc(fichero); // Consumimos el \n
         } while(sobras!=EOF); // Mientras no llegamos al final del archivo
         fclose(fichero); // Cerramos el archivo
-        /* //Imprime el contenido inicial de la tabla de símbolos
+        /*
+        //Imprime el contenido inicial de la tabla de símbolos
         printf("Contenido inicial de la tabla de símbolos:\n");
         ImprimirTablaSimbolos();
         */

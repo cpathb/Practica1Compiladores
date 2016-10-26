@@ -2,8 +2,20 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/main.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/tabla_hash_encadenamiento.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/analizadorLexico.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/analizadorLexico.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/tablaSimbolos.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sistemaEntrada.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/tablaSimbolos.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/gestionErrores.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/sistemaEntrada.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/gestionErrores.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lista.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/tabla_hash_encadenamiento.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lista.c" isTestSource="false" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">

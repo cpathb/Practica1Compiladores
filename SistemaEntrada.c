@@ -150,8 +150,7 @@ void rellenarCentinelaIzquierda(char* buffer, struct centinela *cent){
 void rellenarCentinelaDerecha(char* buffer, struct centinela *cent){
     //Llenamos el lado derecho del buffer centinela con el contenido del buffer
     if(centinelaInfo->cargado!=1){ // Si el bloque de la derecha no fue el último bloque en rellenarse
-        int i=tamBloque, enc=0;
-        if(feof(source)){ // Si se ha llegado al final del fichero introducimos al final del buffer el simbolo $ como terminal de la cadena 
+        if(feof(source)){ // Si se ha llegado al final del fichero introducimos al final del buffer el simbolo $ como terminal de la cadena
             //strncpy(&cent->cadena[tamBloque+1],buffer,tamBloque);
             strcpy(&cent->cadena[tamBloque+1],buffer);
             cent->cadena[((tamBloque+1)+(strlen(buffer)))]='$';

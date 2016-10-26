@@ -1,4 +1,5 @@
 #include "gestionErrores.h"
+#pragma once
 
 // Función para leer bloque a bloque del fichero y guardarlo en el buffer centinela
 struct centinela{
