@@ -94,14 +94,14 @@ tipoelem * siguienteLexema(){
 
     Estado 6: Empieza por un operador, probable que sean separados
 */
-// Función que se emplea para analizar el primer caracter de 
+// Función que se emplea para analizar el primer caracter de
 void tratarPrimerCaracter(char caracter, char * lexema){
     if(isalpha(caracter) || caracter=='_'){ // Es una cadena
         buscarDelimitadorCadena(lexema);
     }
     else{
         if(isdigit(caracter)){ // Es un número
-            printf("Es numero \n");
+            buscarDelimitadorNumero(lexema);
         }
         else{
             if(caracter=='\"'){ // Es una cadena literal de comillas dobles
@@ -112,7 +112,7 @@ void tratarPrimerCaracter(char caracter, char * lexema){
                     buscarDelimitadorComillaSimple(lexema);
                 }
                 else{
-                    if(caracter=='/'){ // Es probablemente un comentario
+                    if(caracter=='/'){ // OPERADORES, esta solo puesto comentario, completar condiciones if
                         printf("Es caracter /\n");
                     }
                     else{
@@ -212,21 +212,81 @@ void buscarDelimitadorCadena(char * lexema){
 
 //  Función que busca el delimitador de un lexema que empieza por un número
 void buscarDelimitadorNumero(char * lexema){
-    int encontrado=0;
     char caracter=siguienteCaracter();
+    int encontrado=0, tam=strlen(lexema);
     // Se comprueba si el siguiente caracter es otro número, punto o letra b/B (Binario) -> Solo 0's y 1's
     if (lexema[0]=='0' && (caracter=='b' || caracter=='B')){ // Si empieza por 0 y le sigue una b es binario
-        
+        tam++;
+        lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+        lexema[tam-1]=caracter;
+        while(encontrado==0){
+            tam++;
+            caracter=siguienteCaracter();
+            if(caracter=='0' || caracter=='1'){ // Mientras sea 0 o 1 se inserta en la cadena de binario
+                lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                lexema[tam-1]=caracter;
+            }
+            else{
+                if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<48) || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127) ){ // Si es delimitador de número se ha encontrado delimitador
+                    encontrado=1;
+                    devolverCaracter();
+                    nuevoLexema();
+                }
+                else{ // Entrada inesperada, avisamos y ya analizamos posteriormente el símbolo como inicio de otro lexema
+                    encontrado=1;
+                    ImprimirError(6,numLinea);
+                    devolverCaracter();
+                    nuevoLexema();
+                }
+            }
+        }
     }
     else{
         // Se comprueba si el siguiente caracter es otro número, punto o letra x/X (Hexadecimal) -> Solo 0..9a..fA..F
         if (lexema[0]=='0' && (caracter=='x' || caracter=='X')){ // Si empieza por 0 y le sigue una X es Hexadecimal
-
+            tam++;
+            lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+            lexema[tam-1]=caracter;
+            while(encontrado==0){
+                tam++;
+                caracter=siguienteCaracter();
+                if((caracter>47 && caracter<58) || (caracter>64 && caracter<91) || (caracter>96 && caracter<123)){ // Mientras sea 0..9, A..F o a..f se inserta en el hexadecimal
+                    lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                    lexema[tam-1]=caracter;
+                }
+                else{
+                    if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<48) || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127) ){ // Si es delimitador de número se ha encontrado delimitador
+                        encontrado=1;
+                        devolverCaracter();
+                        nuevoLexema();
+                    }
+                    else{ // Entrada inesperada, avisamos y ya analizamos posteriormente el símbolo como inicio de otro lexema
+                        encontrado=1;
+                        ImprimirError(6,numLinea);
+                        devolverCaracter();
+                        nuevoLexema();
+                    }
+                }
+            }
         }
         else{
-            // Se comprueba si el siguiente caracter es un punto (Decimal)
-            if(caracter=='.'){ // Si aparece el punto se buscará delimitador para decimal
-
+            if(caracter=='.'){ // Se comprueba si el siguiente caracter es un punto (Decimal), si aparece el punto se buscará delimitador para decimal
+                tam++;
+                lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                lexema[tam-1]=caracter;
+                while(encontrado==0){
+                    tam++;
+                    caracter=siguienteCaracter();
+                    encontrado=delimitadorNumeroDecimalEncontrado(caracter,lexema);
+                    if(encontrado==0) {
+                        lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                        lexema[tam-1]=caracter; // Insertamos el número
+                    }
+                    else{
+                        devolverCaracter();
+                        nuevoLexema();
+                    }
+                }
             }
         }
     }
@@ -348,110 +408,203 @@ int delimitadorCadenaEncontrado(char caracter){
             return 1;
         }
     }
-    /*
-     switch (caracter){
-        // Conjunto de caracteres que delimitan la entrada
-        case 9 ... 10: // Tabulación, line feed 
-        case 13: // Retorno de carro
-        case 32 ... 47: // Espacio ! " # $ % & ' ( ) * + , - . / 
-        case 58 ... 64: // : ; < = > ? @
-        case 91 ... 94: // [ \ ] ^
-        case 96: // `
-        case 123 ... 126: // { | } ~
-            return 1;
-            break;
-        
-        // Rango de _ , letras Mayusculas/minusculas, también ñ acentos y cedillas
-        case 65 ... 90:
-        case 95: // _
-        case 97 ... 122: 
-        case 128 ... 144:
-        case 147 ... 154:
-        case 160 ... 165:
-        case 181 ... 183:
-        case 198 ... 199:
-        case 210 ... 212:
-        case 214 ... 216:
-        case 222:
-        case 224:
-        case 226 ... 229:
-        case 233 ... 237:
-            return 0;
-            break;
-
-        default:
-            ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
-            return 1;
-            break;
-            
-    }
-    */
 }
 
 // Función que busca un delimitador válido para un entero
 int delimitadorNumeroEncontrado(char caracter, char * lexema){
-    int encontrado=0;
-    switch (caracter){
-         // Conjunto de caracteres que delimitan la entrada 
-        case 9 ... 10: // Tabulación, line feed 
-        case 13: // Retorno de carro
-        case 32 ... 45: // Espacio ! " # $ % & ' ( ) * + , -
-        case 47: // /
-        case 58 ... 64: // : ; < = > ? @
-        case 91 ... 94: // [ \ ] ^
-        case 96: // `
-        case 123 ... 126: //{ | } ~
-            return 1;
-            break;
-
-        case 46: // .
-            while(encontrado==0){ // Buscamos un delimitador de decimal a partir de ahora el numero será decimal
-                encontrado=delimitadorNumeroDecimalEncontrado(caracter, lexema);
-                if(encontrado==0){ // Si no se encuentra el delimitador, añadimos el caracter al lexema
-                    lexema = realloc(lexema,strlen(lexema)+1); // Reservamos espacio en la cadena para un caracter más
-                    strcat(lexema,&caracter); // Concatenamos el siguiente caracter a la cadena
-                    caracter=siguienteCaracter();
-                }
+    int encontrado=0, tam=strlen(lexema);
+    if(isdigit(caracter)){ // Si el caracter es un número puede formar parte del numero entero
+        return 0;
+    }
+    else{
+        if(caracter=='.'){ // si es un punto pasamos a modo decimal
+            caracter=siguienteCaracter();
+            if(isdigit(caracter)){
+                tam++;
+                lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                lexema[tam-1]='.'; // Insertamos el .
+                return delimitadorNumeroDecimalEncontrado(caracter,lexema);
             }
-            return 1;
-            break;
-        
-        case 48 ... 57: // Rango de números
-        case 95: // _ 
-            return 0;
-            break;
-        
-        default:
-            ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
-            return 1;
-            break;
+            else{
+                ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                devolverCaracter();
+                return 1;
+            }
+        }
+        else{
+            if(caracter=='e' || caracter=='E'){ // Entramos en modo científico
+                char auxiliar=caracter;
+                caracter=siguienteCaracter();
+                if(caracter=='+' || caracter=='-'){ // si aparece un + o un menos comprobamos otro nivel mas para comprobar si aparece un número o hay que retroceder dos posiciones
+                    char auxiliar2=caracter;
+                    caracter=siguienteCaracter();
+                    if(isdigit(caracter)){ // si aparece un número es un numero científico válido
+                        tam++;
+                        lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                        lexema[tam-1]=auxiliar; // Insertamos e o E
+                        tam++;
+                        lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                        lexema[tam-1]=auxiliar2; // Insertamos + o -
+                        tam++;
+                        lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                        lexema[tam-1]=caracter; // Insertamos el número
+                        while(encontrado==0){
+                            tam++;
+                            caracter=siguienteCaracter();
+                            if(isdigit(caracter)){ // si es número lo insertamos
+                                lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                                lexema[tam-1]=caracter; // Insertamos el número
+                            }
+                            else{
+                                // Si pertenece al conjunto de caracteres que delimitan la entrada --> Tabulación, line feed, Retorno de carro Espacio ! " # $ % & ' ( ) * + , -  /  : ; < = > ? @ [ \ ] ^ ` { | } ~  (NO ESTÁ EL PUNTO)
+                                if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<46) || caracter==47 || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127) ){
+                                    encontrado=1;
+                                }
+                                else{ // Se ha encontrado un caracter que no se esperaba, se imprimirá un aviso, se devolverá todo lo que se tiene como lexema y se continuará tratando el caracter inesperado como principio de lexema
+                                    ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                                    encontrado=1;
+                                }
+                            }
+                        }
+                    }
+                    else{ // Si no aparece un número no era un número científico, por lo que devolvemos el símbolo
+                        ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                        devolverCaracter();
+                    }
+                }
+                else{
+                    if(isdigit(caracter)){ // Si después del e aparece un número entramos en modo científico
+                        tam++;
+                        lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                        lexema[tam-1]=auxiliar; // Insertamos el e
+                        tam++;
+                        lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                        lexema[tam-1]=caracter; // Insertamos el número
+                        while(encontrado==0){
+                            tam++;
+                            caracter=siguienteCaracter();
+                            if(isdigit(caracter)){ // si es número lo insertamos
+                                lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                                lexema[tam-1]=caracter; // Insertamos el número
+                            }
+                            else{
+                                // Si pertenece al conjunto de caracteres que delimitan la entrada --> Tabulación, line feed, Retorno de carro Espacio ! " # $ % & ' ( ) * + , -  /  : ; < = > ? @ [ \ ] ^ ` { | } ~  (NO ESTÁ EL PUNTO)
+                                if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<46) || caracter==47 || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127) ){
+                                    encontrado=1;
+                                }
+                                else{ // Se ha encontrado un caracter que no se esperaba, se imprimirá un aviso, se devolverá todo lo que se tiene como lexema y se continuará tratando el caracter inesperado como principio de lexema
+                                    ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                                    encontrado=1;
+                                }
+                            }
+                        }
+                    }
+                    else{
+                        ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                    }
+                }
+                return 1;
+            }
+            // Si pertenece al conjunto de caracteres que delimitan la entrada --> Tabulación, line feed, Retorno de carro Espacio ! " # $ % & ' ( ) * + , -  /  : ; < = > ? @ [ \ ] ^ ` { | } ~  (NO ESTÁ EL PUNTO)
+            if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<46) || caracter==47 || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127) ){
+                return 1;
+            }
+            else{ // Se ha encontrado un caracter que no se esperaba, se imprimirá un aviso, se devolverá todo lo que se tiene como lexema y se continuará tratando el caracter inesperado como principio de lexema
+                ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                return 1;
+            }
+
+        }
     }
 }
 
 // Función que busca un delimitador válido para un decimal
 int delimitadorNumeroDecimalEncontrado(char caracter, char * lexema){
-    int encontrado=0;
-    switch (caracter){
-         // Conjunto de caracteres que delimitan la entrada 
-        case 9 ... 10: // Tabulación, line feed 
-        case 13: // Retorno de carro
-        case 32 ... 45: // Espacio ! " # $ % & ' ( ) * + , -
-        case 47: // /
-        case 58 ... 64: // : ; < = > ? @
-        case 91 ... 94: // [ \ ] ^
-        case 96: // `
-        case 123 ... 126: //{ | } ~
+    if(isdigit(caracter)){ // Si el caracter es un número puede formar parte del decimal
+        return 0;
+    }
+    else{
+        if(caracter=='e' || caracter=='E'){ // Entramos en modo científico
+            int encontrado=0, tam=strlen(lexema);
+            char auxiliar=caracter;
+            caracter=siguienteCaracter();
+            if(caracter=='+' || caracter=='-'){ // si aparece un + o un menos comprobamos otro nivel mas para comprobar si aparece un número o hay que retroceder dos posiciones
+                char auxiliar2=caracter;
+                caracter=siguienteCaracter();
+                if(isdigit(caracter)){ // si aparece un número es un numero científico válido
+                    tam++;
+                    lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                    lexema[tam-1]=auxiliar; // Insertamos e o E
+                    tam++;
+                    lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                    lexema[tam-1]=auxiliar2; // Insertamos + o -
+                    tam++;
+                    lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                    lexema[tam-1]=caracter; // Insertamos el número
+                    while(encontrado==0){
+                        tam++;
+                        caracter=siguienteCaracter();
+                        if(isdigit(caracter)){ // si es número lo insertamos
+                            lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                            lexema[tam-1]=caracter; // Insertamos el número
+                        }
+                        else{
+                            // Si pertenece al conjunto de caracteres que delimitan la entrada --> Tabulación, line feed, Retorno de carro Espacio ! " # $ % & ' ( ) * + , -  /  : ; < = > ? @ [ \ ] ^ ` { | } ~  (NO ESTÁ EL PUNTO)
+                            if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<46) || caracter==47 || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127) ){
+                                encontrado=1;
+                            }
+                            else{ // Se ha encontrado un caracter que no se esperaba, se imprimirá un aviso, se devolverá todo lo que se tiene como lexema y se continuará tratando el caracter inesperado como principio de lexema
+                                ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                                encontrado=1;
+                            }
+                        }
+                    }
+                }
+                else{ // Si no aparece un número no era un número científico, por lo que devolvemos el símbolo
+                    ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                    devolverCaracter();
+                }
+            }
+            else{
+                if(isdigit(caracter)){ // Si después del e aparece un número entramos en modo científico
+                    tam++;
+                    lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                    lexema[tam-1]=auxiliar; // Insertamos el e
+                    tam++;
+                    lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                    lexema[tam-1]=caracter; // Insertamos el número
+                    while(encontrado==0){
+                        tam++;
+                        caracter=siguienteCaracter();
+                        if(isdigit(caracter)){ // si es número lo insertamos
+                            lexema = realloc(lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                            lexema[tam-1]=caracter; // Insertamos el número
+                        }
+                        else{
+                            // Si pertenece al conjunto de caracteres que delimitan la entrada --> Tabulación, line feed, Retorno de carro Espacio ! " # $ % & ' ( ) * + , -  /  : ; < = > ? @ [ \ ] ^ ` { | } ~  (NO ESTÁ EL PUNTO)
+                            if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<46) || caracter==47 || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127) ){
+                                encontrado=1;
+                            }
+                            else{ // Se ha encontrado un caracter que no se esperaba, se imprimirá un aviso, se devolverá todo lo que se tiene como lexema y se continuará tratando el caracter inesperado como principio de lexema
+                                ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                                encontrado=1;
+                            }
+                        }
+                    }
+                }
+                else{
+                    ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                }
+            }
             return 1;
-            break;
-
-        case 48 ... 57: // Rango de números
-        case 95: // _ 
-            return 0;
-            break;
-
-        default:
+        }
+        // Si pertenece al conjunto de caracteres que delimitan la entrada --> Tabulación, line feed, Retorno de carro Espacio ! " # $ % & ' ( ) * + , -  /  : ; < = > ? @ [ \ ] ^ ` { | } ~  (NO ESTÁ EL PUNTO)
+        if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<46) || caracter==47 || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127) ){
+            return 1;
+        }
+        else{ // Se ha encontrado un caracter que no se esperaba, se imprimirá un aviso, se devolverá todo lo que se tiene como lexema y se continuará tratando el caracter inesperado como principio de lexema
             ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
             return 1;
-            break;
+        }
     }
 }
