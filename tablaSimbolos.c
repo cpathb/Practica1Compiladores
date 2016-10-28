@@ -1,7 +1,7 @@
 #include <string.h>
 #include "tablaSimbolos.h" 
-#include "gestionErrores.h"
-#include "definiciones.h"
+
+
 
 //Definicion de funciones
 void insertarReservadasValor();

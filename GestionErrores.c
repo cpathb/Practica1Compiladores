@@ -35,6 +35,10 @@ void ImprimirError(int codigo, int linea){
         case 8:
             printf("No se ha encontrado el final de \" en la línea %d.\n",linea);
             break;
+
+        case 9:
+            printf("No se ha encontrado el final del comentario, línea %d.\n",linea);
+            break;
             
         default:
             printf("Error no identificado.\n");

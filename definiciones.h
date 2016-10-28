@@ -7,23 +7,20 @@
 #define CADENALITERAL 414
 #define COMENTARIODOCUMENTACION 415
 
-// Definición de los operadores dobles ==, !=, >=, <=, =>,=<, +=, -=, *=, /=, ++, --
+// Definición de los operadores dobles ==, !=, >=, <=, =>,=<, +=, -=, *=, /=, ++, --, ..
 #define IGUALIGUAL 416
 #define DISTINTO 417
 #define MAYORIGUAL 418
 #define MENORIGUAL 419
 #define IGUALMAYOR 420
 #define IGUALMENOR 421
-#define IGUALMAS 422
-#define IGUALMENOS 423
-#define IGUALPOR 424
-#define IGUALENTRE 425
-#define MASLIGUAL 426
-#define MENOSIGUAL 427
-#define PORIGUAL 428
-#define PORCENTAJEIGUAL 429
-#define MASMAS 430
-#define MENOSMENOS 431
+#define MASIGUAL 422
+#define MENOSIGUAL 423
+#define PORIGUAL 424
+#define BARRAIGUAL 425
+#define MASMAS 426
+#define MENOSMENOS 427
+#define RANGO 428
 
 // Para aceptar más operadores dobles, triples o en adelante, sería necesario añadir aqui su definición
 // y en la función de tratamiento de lexema de la tabla de símbolos, realizar la comprobación oportuna para este operador.
