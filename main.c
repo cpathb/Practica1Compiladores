@@ -15,10 +15,11 @@ int main( int argc, const char* argv[] ){
         free(elemento); // Liberamos el elemento
         elemento = siguienteLexema(); // Solicitamos el siguiente lexema
     }
+    free(elemento); // Liberamos el elemento
 
     printf("\n\nContenido de la Tabla de Símbolos:\n");
     printf("----------------------------------\n");
-    ImprimirTablaSimbolos();
-    destruirSistemaEntrada();
-    destruirTablasimbolos();
+    ImprimirTablaSimbolos(); // Imprimimos la tabla de símbolos en el orden creado por la función hash
+    destruirSistemaEntrada(); // Destruimos el sistema de entrada
+    destruirTablasimbolos(); // Destruimos la tabla de símbolos
 }

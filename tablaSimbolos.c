@@ -32,13 +32,12 @@ void insertarReservadasValor(){
     else{
         char sobras;
         do{
-        loc = calloc(tamLinea,sizeof(char)); // Mientras no sea final de archivo, reservamos memoria y la ponemos a cero
-        elemento = malloc(sizeof(tipoelem)); // Reservamos memoria para el elemento
-        elemento->lexema = calloc(tamLinea,sizeof(char)); // Reservamos memoria y la ponemos a cero 
+            loc = calloc(tamLinea,sizeof(char)); // Mientras no sea final de archivo, reservamos memoria y la ponemos a cero
+            elemento = malloc(sizeof(tipoelem)); // Reservamos memoria para el elemento
+            elemento->lexema = calloc(tamLinea,sizeof(char)); // Reservamos memoria y la ponemos a cero
             fscanf(fichero,"%[^\n]",loc);
             if(strlen(loc)>0){ // Leemos del archivo la linea hasta el \n
                 if(loc[0]=='#'){ // Si es un #define lo tratamos para obtener clave valor
-                    //valor = (char *) malloc((sizeof(char)*(strlen(loc)-8))); // Reservamos espacio para la cadena sin "#define "
                     valor = calloc((strlen(loc)-8),sizeof(char)); // Reservamos espacio para la cadena sin "#define "
                     strcpy(valor,&loc[7]); // Copiamos la cadena sin "#define"
                     char *lexema; // Variable para albergar
@@ -48,11 +47,12 @@ void insertarReservadasValor(){
                     //printf("Insertado: %s -- %d\n",elemento.lexema,elemento.compLex);
                     InsertarHash(&tablaSimbolos,*elemento); // Insertamos el elemento en la tabla hash
                     valorIdentificador=elemento->compLex+1;// Modificamos el valor del número para el identificador al del ultimo insertado en la tabla de símbolos desde el fichero
+                    free(lexema);
                     free(valor); //Liberamos la variable valor
                 }
                 free(loc); // Libero la variable linea de codigo
             }
-        sobras= fgetc(fichero); // Consumimos el \n
+            sobras= fgetc(fichero); // Consumimos el \n
         } while(sobras!=EOF); // Mientras no llegamos al final del archivo
         fclose(fichero); // Cerramos el archivo
         /*
@@ -88,9 +88,9 @@ void ImprimirTablaSimbolos(){
     while(i<TamHash-1){ // Recorremos todos los elementos de la tabla hash
         if(!esvacia(tablaSimbolos[i])){ // Comprobamos si la posición de la tabla hash esta vacía
             p=primero(tablaSimbolos[i]);
-            while(p->sig!=NULL){ // Si estamos en un elemento que 
-                recupera((tablaSimbolos)[i],p,elemento);
-                printf("%s -- %d\n",elemento->lexema,elemento->compLex);
+            while(p->sig!=NULL){ // Mientras no se llegue al ultimo elemento de la lista encadenada de la posición de la tabla hash
+                recupera((tablaSimbolos)[i],p,elemento); // recuperamos el elemento
+                printf("%s -- %d\n",elemento->lexema,elemento->compLex); // Imprimimos sus datos
                 p=p->sig;
             }
         }

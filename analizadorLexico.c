@@ -7,7 +7,7 @@
 
 // Definición de variables
 int numLinea=1;
-int tamMaxLexema=0;
+int tamMaxLexema=0; // Variable que se inicializa con la función inicializarAnalizadorLexico y se le asigna el valor del tamaño de bloque para comprobaciones de exceso del tamaño de bloque en los lexemas encontrados
 
 // Definiciónd de funciones
 void tratarPrimerCaracter(char caracter, tipoelem * elemento);
@@ -74,36 +74,6 @@ tipoelem * siguienteLexema(){
 
     return elemento;
 }
-
-/* Se tarata en función del primer caracter del lexema y en función de lo que sea, se entra en una función de busqueda de delimitador distinto
-    Estado 1: Empieza por letra o _
-        * Acaba al encontrar un operador o delimitador
-
-    Estado 2: Empieza por un número
-        * Acaba al encontrar un operador o delimitador (Excepto punto)
-        * Si se encuentra punto se entra en un nuevo estado en el que se continua hasta alcanzar un delimitador (No puede ser punto, si es error)
-        * Si es un binario se acaba al llegar a un delimitador o algo no esperado
-        * Si es un hexadecimal se acaba al llegar a un delimitador o algo no esperado
-        * Si se encuentra una e/E es exponencial, por lo tanto se comprueba que luego aparezca +, - o número
-        
-    Estado 3: Empieza por comillas dobles "
-        * Acaba al encontrar las siguientes comillas dobles ", EXCEPTO SI ANTES HAY UN \
-        * Si no acaba en la misma línea es un error
-
-    Estado 4: Empieza por comillas simples '
-        * Acaba al encontrar las siguientes comillas simples ', EXCEPTO SI ANTES HAY UN \
-        * Si no acaba en la misma lína es un error
-
-    Estado 5: Empieza por /
-        * Se acaba si aparece un número, letra o separador, lo mejor es
-        * Si aparece un = es un operador conjunto al siguiente se comprueba, acaba con 
-        * Si se encuentra un +, se entra en busqueda de + / aumentando contadores si aparecen más / +, no se guarda el lexema, se descartan los caracteres
-        * Si se encuentra un *, se comprueba si el siguente caracter es un *
-            * Si no se encuentra, se entra en búsqueda de * /, no se guarda el lexema, se decartan los caracteres
-            * Si se encuentra, se entra en busqueda de un * /, se guarda todo como lexema COMENTARIO_COMPILACIÓN
-
-    Estado 6: Empieza por un operador, probable que sean separados
-*/
 
 // Función que se emplea para analizar el primer caracter de
 void tratarPrimerCaracter(char caracter, tipoelem * elemento){
@@ -251,14 +221,15 @@ void tratarPrimerCaracter(char caracter, tipoelem * elemento){
                                                                 caract=siguienteCaracter();
                                                                 if(caract==47){ // Aparece un /
                                                                     encontrado=1;
-                                                                    if(strlen(elemento->lexema)<=tamMaxLexema){ // Si no excede el tamaño máximo de lexema se acotara lo que se guarda a 8 caracteres y se añade " ..."
-                                                                        char * cadena= (char *) malloc(sizeof(char)*8);
-                                                                        strncpy(cadena,elemento->lexema,8);
-                                                                        elemento->lexema = realloc(elemento->lexema, (sizeof(char)*12)); // Reservamos espacio en la cadena para un caracter
-                                                                        elemento->lexema = calloc(12, sizeof(char));
-                                                                        strcpy(elemento->lexema,cadena);
-                                                                        strcat(&elemento->lexema[7]," ...");
-                                                                        elemento->compLex=COMENTARIODOCUMENTACION;
+                                                                    if(strlen(elemento->lexema)<=tamMaxLexema){ // Si no excede el tamaño máximo de lexema se acotara lo que se guarda a 8 caracteres y se añade "..."
+                                                                        char * cadena= (char *) malloc(sizeof(char)*(strlen(elemento->lexema)/3)); // Definimos el tamaño de la cadena auxiliar a un tercio
+                                                                        strncpy(cadena,elemento->lexema,(strlen(elemento->lexema)/3)); // Copiamos a la cadena auxiliar el primer tercio de la cadena
+                                                                        elemento->lexema = realloc(elemento->lexema, (sizeof(char)*(strlen(elemento->lexema)/3)+3)); // Reservamos espacio en la cadena para un "..."
+                                                                        elemento->lexema = calloc((strlen(elemento->lexema)/3)+3, sizeof(char)); // Inicializamos el lexema
+                                                                        strcpy(elemento->lexema,cadena); // Copiamos la cadena auxiliar al lexema
+                                                                        strcat(elemento->lexema,"..."); // Añadimos al lexema "..."
+                                                                        free(cadena); // Liberamos la cadena auxiliar
+                                                                        elemento->compLex=COMENTARIODOCUMENTACION; // asignamos el componente léxico
                                                                         nuevoLexema();
                                                                     }
                                                                     else{
@@ -661,8 +632,8 @@ void buscarDelimitadorComillaSimple(tipoelem * elemento){
             if(caracter=='\n' || caracter=='$'){ // Si encontramos el \n o un $ (fin de fichero) error al delimitar el literal
                 devolverCaracter();
                 ImprimirError(7,numLinea);
-                elemento->lexema=realloc(elemento->lexema, sizeof(char));
-                elemento->lexema=calloc(1, sizeof(char));
+                elemento->lexema=realloc(elemento->lexema, sizeof(char));  // Reservamos espacio en la cadena para un caracter
+                elemento->lexema=calloc(1, sizeof(char));  // Lo inicializamos
                 elemento->lexema[0]='\n';
                 encontrado=1;
             }
@@ -706,7 +677,7 @@ void buscarDelimitadorComillaDoble(tipoelem * elemento){
     while(encontrado==0){ // Repetiremos el proceso hasta que se encuentre el delimitador
         tam++;
         if(caracter=='\"'){ // Si encontramos comilla doble se ha llegado al delimitador, sino puede aparecer cualquier cosa
-            elemento->lexema = realloc(elemento->lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+            elemento->lexema = realloc(elemento->lexema,(sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
             elemento->lexema[tam-1]=caracter;
             encontrado=1;
         }
@@ -714,8 +685,8 @@ void buscarDelimitadorComillaDoble(tipoelem * elemento){
             if(caracter=='\n' || caracter=='$'){ // Si encontramos el \n o un $ (fin de fichero) error al delimitar el literal
                 devolverCaracter();
                 ImprimirError(8,numLinea);
-                elemento->lexema=realloc(elemento->lexema, sizeof(char));
-                elemento->lexema=calloc(1, sizeof(char));
+                elemento->lexema=realloc(elemento->lexema, sizeof(char));  // Reservamos espacio en la cadena para un caracter
+                elemento->lexema=calloc(1, sizeof(char));  // Lo inicializamos
                 elemento->lexema[0]='\n';
                 encontrado=1;
             }
@@ -739,7 +710,7 @@ void buscarDelimitadorComillaDoble(tipoelem * elemento){
         else{ // Si se encuentra el delimitador
             if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
                 ImprimirError(10,numLinea);
-                elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                elemento->lexema = realloc(elemento->lexema,(sizeof(char))); // Reservamos espacio en la cadena para un caracter
                 elemento->lexema = calloc(1, sizeof(char));
                 elemento->lexema[0] = '\n';
             }
