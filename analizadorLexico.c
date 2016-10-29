@@ -218,17 +218,16 @@ void tratarPrimerCaracter(char caracter, tipoelem * elemento){
                                                         while(encontrado==0 && caract!='$'){ // Mientras no encontremos el final de fichero o */
                                                             caract=siguienteCaracter();
                                                             if(caract==42){ // Aparece un *
+                                                                tam++;
+                                                                elemento->lexema = realloc(elemento->lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                                                                elemento->lexema[tam-1]=caract;
                                                                 caract=siguienteCaracter();
                                                                 if(caract==47){ // Aparece un /
+                                                                    tam++;
+                                                                    elemento->lexema = realloc(elemento->lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                                                                    elemento->lexema[tam-1]=caract;
                                                                     encontrado=1;
-                                                                    if(strlen(elemento->lexema)<=tamMaxLexema){ // Si no excede el tamaño máximo de lexema se acotara lo que se guarda a 8 caracteres y se añade "..."
-                                                                        char * cadena= (char *) malloc(sizeof(char)*(strlen(elemento->lexema)/3)); // Definimos el tamaño de la cadena auxiliar a un tercio
-                                                                        strncpy(cadena,elemento->lexema,(strlen(elemento->lexema)/3)); // Copiamos a la cadena auxiliar el primer tercio de la cadena
-                                                                        elemento->lexema = realloc(elemento->lexema, (sizeof(char)*(strlen(elemento->lexema)/3)+3)); // Reservamos espacio en la cadena para un "..."
-                                                                        elemento->lexema = calloc((strlen(elemento->lexema)/3)+3, sizeof(char)); // Inicializamos el lexema
-                                                                        strcpy(elemento->lexema,cadena); // Copiamos la cadena auxiliar al lexema
-                                                                        strcat(elemento->lexema,"..."); // Añadimos al lexema "..."
-                                                                        free(cadena); // Liberamos la cadena auxiliar
+                                                                    if(strlen(elemento->lexema)<=tamMaxLexema){ // Si no excede el tamaño máximo de lexema
                                                                         elemento->compLex=COMENTARIODOCUMENTACION; // asignamos el componente léxico
                                                                         nuevoLexema();
                                                                     }
@@ -672,7 +671,7 @@ void buscarDelimitadorComillaSimple(tipoelem * elemento){
 //  Función que busca el delimitador de un lexema que empieza por "
 void buscarDelimitadorComillaDoble(tipoelem * elemento){
     char caracter=siguienteCaracter();
-    int encontrado=0,error=0, tam=strlen(elemento->lexema); // Variable para saber si se encontró el delimitador y variable para reservar el tamaño del lexema
+    int encontrado=0, tam=strlen(elemento->lexema); // Variable para saber si se encontró el delimitador y variable para reservar el tamaño del lexema
 
     while(encontrado==0){ // Repetiremos el proceso hasta que se encuentre el delimitador
         tam++;
