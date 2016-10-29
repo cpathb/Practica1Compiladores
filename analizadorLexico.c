@@ -23,7 +23,7 @@ int delimitadorNumeroDecimalEncontrado(char caracter, tipoelem * elemento);
 
 // Función para inicializar el Analizador Léxico
 void inicializarAnalizadorLexico(){
-    tamMaxLexema=tamañoMaximoLexema();
+    tamMaxLexema=tamMaximoLexema();
 }
 
 // Función que devuelve el siguiente lexema del sistema de entrada, si se acabaron los lexemas se devuelve NULL

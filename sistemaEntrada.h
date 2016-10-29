@@ -20,7 +20,7 @@ void destruirSistemaEntrada();
 char siguienteCaracter();
 
 // Devuelve el tamaño máximo del lexema, que será el de tamaño de bloque
-int tamañoMaximoLexema();
+int tamMaximoLexema();
 
 // Retrasa la posición fin del centinela a la posición anterior, debido a un exceso al tratar caracteres
 void devolverCaracter();

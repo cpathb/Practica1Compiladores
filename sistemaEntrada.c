@@ -72,7 +72,7 @@ char * dameBloqueFichero(FILE **fichero){
 }
 
 // Función que devuelve el máximo tamaño de lexema que se soportará
-int tamañoMaximoLexema(){
+int tamMaximoLexema(){
     return tamBloque;
 }
 
