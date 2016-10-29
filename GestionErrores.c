@@ -36,11 +36,19 @@ void ImprimirError(int codigo, int linea){
             printf("No se ha encontrado el final de \" en la línea %d.\n",linea);
             break;
 
-        case 9:
-            printf("No se ha encontrado el final del comentario, línea %d.\n",linea);
-            break;
-            
-        default:
+         case 9:
+             printf("No se ha encontrado el final del comentario, línea %d.\n",linea);
+             break;
+
+         case 10:
+             printf("Se ha excedido el tamaño máximo de lexema, línea %d.\n",linea);
+             break;
+
+         case 11:
+             printf("Se ha sobreescrito el contenido del buffer centinela.\n");
+             break;
+
+         default:
             printf("Error no identificado.\n");
      }
 }

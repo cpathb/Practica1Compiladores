@@ -7,6 +7,7 @@
 
 // Definición de variables
 int numLinea=1;
+int tamMaxLexema=0;
 
 // Definiciónd de funciones
 void tratarPrimerCaracter(char caracter, tipoelem * elemento);
@@ -19,6 +20,11 @@ int delimitadorNumeroEncontrado(char caracter, tipoelem * elemento);
 int delimitadorNumeroDecimalEncontrado(char caracter, tipoelem * elemento);
 
 // Inicio de funciones
+
+// Función para inicializar el Analizador Léxico
+void inicializarAnalizadorLexico(){
+    tamMaxLexema=tamañoMaximoLexema();
+}
 
 // Función que devuelve el siguiente lexema del sistema de entrada, si se acabaron los lexemas se devuelve NULL
 tipoelem * siguienteLexema(){
@@ -49,6 +55,7 @@ tipoelem * siguienteLexema(){
             if(elemento->lexema[0]=='\n'){ // Si hay un error en la funcion previamente invocada, se pondra el valor del caracter inicial a \n, por lo que podrémos repetir el proceso a partir de donde sucedió el error
                 problema=1;
                 elemento->lexema[0]=siguienteCaracter();
+                elemento->compLex=-1;
             }
             else{
                 problema=0;
@@ -116,7 +123,7 @@ void tratarPrimerCaracter(char caracter, tipoelem * elemento){
                     buscarDelimitadorComillaSimple(elemento);
                 }
                 else{
-                    if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<48) || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127)){ // Se ha encontrado un token o el comienzo de un operador doble
+                    if((caracter>32 && caracter<48) || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127)){ // Se ha encontrado un token o el comienzo de un operador doble
                         if(caracter==33 || caracter==42 || caracter==43 || caracter==45 || caracter==47 || caracter==60 || caracter==61 || caracter==62){ // Si es alguno de los operadores que pueden tener otro operador a continuación: ! * + - / < = >
                             int encontrado=0,anidado=0, tam=strlen(elemento->lexema);
                             char caract=siguienteCaracter(); // Almacenamos el siguiente siguiente caracter en el
@@ -214,36 +221,83 @@ void tratarPrimerCaracter(char caracter, tipoelem * elemento){
                                             }
                                             devolverCaracter(); // Devolvemos el /n (salto de línea) para que sean tratado el caracter
                                             elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                            elemento->lexema=calloc(1, sizeof(char));
                                             elemento->lexema[0]='\n'; // Insertamos el \n para que no se trate como lexema
                                             nuevoLexema();
                                         }
                                         else{
                                             if(caract==42) { // Es un comentario de bloque, por lo que descartamos toda la entrada hasta encontrar */ o final de fichero (si se encuentra final de fichero se muestra error de cierre de comentario
                                                 caract=siguienteCaracter();
+                                                tam++;
                                                 if(caract==42){ // Es un comentario de documentación, descartamos toda la entrada hasta encontrar */ o final de fichero (si se encuentra final de fichero se muestra error de cierre de comentario
-                                                    while(encontrado==0 && caract!='$'){ // Mientras no encontremos el final de fichero o */
-                                                        caract=siguienteCaracter();
-                                                        if(caract==42){ // Aparece un *
-                                                            caract=siguienteCaracter();
-                                                            if(caract==47){ // Aparece un /
-                                                                encontrado=1;
-                                                                elemento->lexema = realloc(elemento->lexema, (sizeof(char)*24)); // Reservamos espacio en la cadena para un caracter
-                                                                elemento->lexema="Comentario documentación"; // Insertamos el \n para que no se trate como lexema
-                                                                elemento->compLex=COMENTARIODOCUMENTACION;
-                                                                nuevoLexema();
-                                                            }
-                                                        }
-                                                        if(caract=='\n'){ // Si aparece un salto de línea incrementamos el contador del programa
+                                                    caract=siguienteCaracter();
+                                                    tam++;
+                                                    if(caract==47){ // Era un comentario de bloque que se cerro de golpe
+                                                        elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                                        elemento->lexema=calloc(1, sizeof(char));
+                                                        elemento->lexema[0]='\n'; // Insertamos el \n para que no se trate como lexema
+                                                        nuevoLexema();
+                                                    }
+                                                    else{
+                                                        if(caract=='\n'){
                                                             numLinea++;
                                                         }
-
-                                                        if(caract=='$'){ //final de fichero
-                                                            ImprimirError(9,numLinea);
-                                                            encontrado=1;
-                                                            devolverCaracter(); // Devolvemos el /n (salto de línea) para que sea tratado el caracter
-                                                            elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
-                                                            elemento->lexema[0]='\n'; // Insertamos el \n para que no se trate como lexema
-                                                            nuevoLexema();
+                                                        elemento->lexema = realloc(elemento->lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter
+                                                        elemento->lexema[1]='*';
+                                                        elemento->lexema[2]='*';
+                                                        while(encontrado==0 && caract!='$'){ // Mientras no encontremos el final de fichero o */
+                                                            caract=siguienteCaracter();
+                                                            if(caract==42){ // Aparece un *
+                                                                caract=siguienteCaracter();
+                                                                if(caract==47){ // Aparece un /
+                                                                    encontrado=1;
+                                                                    if(strlen(elemento->lexema)<=tamMaxLexema){ // Si no excede el tamaño máximo de lexema se acotara lo que se guarda a 8 caracteres y se añade " ..."
+                                                                        char * cadena= (char *) malloc(sizeof(char)*8);
+                                                                        strncpy(cadena,elemento->lexema,8);
+                                                                        elemento->lexema = realloc(elemento->lexema, (sizeof(char)*12)); // Reservamos espacio en la cadena para un caracter
+                                                                        elemento->lexema = calloc(12, sizeof(char));
+                                                                        strcpy(elemento->lexema,cadena);
+                                                                        strcat(&elemento->lexema[7]," ...");
+                                                                        elemento->compLex=COMENTARIODOCUMENTACION;
+                                                                        nuevoLexema();
+                                                                    }
+                                                                    else{
+                                                                        ImprimirError(10,numLinea);
+                                                                        elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                                                        elemento->lexema = calloc(1, sizeof(char));
+                                                                        elemento->lexema[0] = '\n';
+                                                                    }
+                                                                }
+                                                                else{
+                                                                    if(caract=='\n'){ // Si aparece un salto de línea incrementamos el contador del programa
+                                                                        numLinea++;
+                                                                    }
+                                                                    tam++;
+                                                                    elemento->lexema = realloc(elemento->lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                                                                    elemento->lexema[tam-1]=caract;
+                                                                }
+                                                            }
+                                                            else{
+                                                                if(caract=='\n'){ // Si aparece un salto de línea incrementamos el contador del programa
+                                                                    numLinea++;
+                                                                }
+                                                                else{
+                                                                    if(caract=='$'){ //final de fichero
+                                                                        ImprimirError(9,numLinea);
+                                                                        encontrado=1;
+                                                                        devolverCaracter(); // Devolvemos el /n (salto de línea) para que sea tratado el caracter
+                                                                        elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                                                        elemento->lexema=calloc(1, sizeof(char));
+                                                                        elemento->lexema[0]='\n'; // Insertamos el \n para que no se trate como lexema
+                                                                        nuevoLexema();
+                                                                    }
+                                                                    else{
+                                                                        tam++;
+                                                                        elemento->lexema = realloc(elemento->lexema, (sizeof(char)*tam)); // Reservamos espacio en la cadena para un caracter más
+                                                                        elemento->lexema[tam-1]=caract;
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -254,9 +308,16 @@ void tratarPrimerCaracter(char caracter, tipoelem * elemento){
                                                             caract=siguienteCaracter();
                                                             if(caract==47){ // Aparece una /
                                                                 encontrado=1;
+                                                                devolverCaracter();
                                                                 elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                                                elemento->lexema=calloc(1, sizeof(char));
                                                                 elemento->lexema[0]='\n'; // Insertamos el \n para que no se trate como lexema
                                                                 nuevoLexema();
+                                                            }
+                                                            else{
+                                                                if(caract=='\n'){ // Si aparece un salto de línea incrementamos el contador del programa
+                                                                    numLinea++;
+                                                                }
                                                             }
                                                         }
                                                         if(caract=='\n'){ // Si aparece un salto de línea incrementamos el contador del programa
@@ -268,6 +329,7 @@ void tratarPrimerCaracter(char caracter, tipoelem * elemento){
                                                             encontrado=1;
                                                             devolverCaracter(); // Devolvemos el /n (salto de línea) para que sea tratado el caracter
                                                             elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                                            elemento->lexema=calloc(1, sizeof(char));
                                                             elemento->lexema[0]='\n'; // Insertamos el \n para que no se trate como lexema
                                                             nuevoLexema();
                                                         }
@@ -288,20 +350,22 @@ void tratarPrimerCaracter(char caracter, tipoelem * elemento){
                                                         if(caract==47){ // Aparece un /
                                                             caract=siguienteCaracter();
                                                             if(caract==43){ // Aparece un +
-                                                                caract++;
+                                                                anidado++;
                                                             }
+                                                        }
+                                                        if(caract=='\n'){ // Si aparece un salto de línea incrementamos el contador del programa
+                                                            numLinea++;
                                                         }
                                                     }
 
                                                     if(caract=='$'){ //final de fichero
                                                         ImprimirError(9,numLinea);
-                                                        encontrado=1;
                                                         devolverCaracter(); // Devolvemos el /n (salto de línea) para que sea tratado el caracter
-                                                        nuevoLexema();
-
                                                     }
                                                     elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                                    elemento->lexema=calloc(1, sizeof(char));
                                                     elemento->lexema[0]='\n'; // Insertamos el \n para que no se trate como lexema
+                                                    nuevoLexema();
                                                 }
                                                 else{
                                                     elemento->compLex=(int)elemento->lexema[0]; // Como es un token, introducimos su valor ascii como componente léxico
@@ -386,68 +450,18 @@ void tratarPrimerCaracter(char caracter, tipoelem * elemento){
                         if(caracter=='\n'){ // Si es una nueva línea aumentamos el contador de línea
                             numLinea++;
                         }
+                        else{
+                            if(caracter==9 || caracter == 10 || caracter==32){ // Si es un tab, line feed o un espacio no se tratan
+                                elemento->lexema[0]='\n';
+                            }
+                        }
+
                     }
                 }
             }
         }
 
     }
-
-    /*
-    switch(caracter){
-        // Rango de _ , letras Mayusculas/minusculas, también ñ acentos y cedillas
-        case 65 ... 90:
-        case 95: // _
-        case 97 ... 122: 
-        case 128 ... 144:
-        case 147 ... 154:
-        case 160 ... 165:
-        case 181 ... 183:
-        case 198 ... 199:
-        case 210 ... 212:
-        case 214 ... 216:
-        case 222:
-        case 224:
-        case 226 ... 229:
-        case 233 ... 237:
-            buscarDelimitadorCadena(lexema);
-            break;
-        
-        // Rango Números
-        case 48 ... 57:
-            //buscarDelimitadorNumero(lexema);
-            break;
-        
-        // Comillas dobles
-        case 34:
-            //buscarDelimitadorComillaDoble(lexema);
-            break;
-
-        // Comillas simples
-        case 39:
-            //buscarDelimitadorComillaSimple(lexema);
-            break;
-
-        // Dolar
-        case 36: // No se trata nada, final de fichero
-            break;
-
-        // Punto
-        case 46:
-            break;
-
-        // \n 
-        case 10:
-            numLinea++;
-            break;
-
-        default:
-            ImprimirError(5,numLinea); // Avisamos de ERROR de símbolo inesperado
-            lexema[0]=siguienteCaracter(); // Continuamos analizando el siguiente caracter
-            tratarPrimerCaracter(lexema[0],lexema);
-            break;
-    }
-    */
 }
 
 // Funciones de busqueda de delimitadores
@@ -466,6 +480,12 @@ void buscarDelimitadorCadena(tipoelem * elemento){
             caracter=siguienteCaracter();
         }
         else{ // Si se encuentra el delimitador
+            if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                ImprimirError(10,numLinea);
+                elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                elemento->lexema = calloc(1, sizeof(char));
+                elemento->lexema[0] = '\n';
+            }
             devolverCaracter();
             nuevoLexema(); // Actualizamos los punteros del centinela
         }
@@ -491,14 +511,30 @@ void buscarDelimitadorNumero(tipoelem * elemento){
             else{
                 if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<48) || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127) ){ // Si es delimitador de número se ha encontrado delimitador
                     encontrado=1;
-                    elemento->compLex=NUMEROBINARIO;
+                    if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                        ImprimirError(10,numLinea);
+                        elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                        elemento->lexema = calloc(1, sizeof(char));
+                        elemento->lexema[0] = '\n';
+                    }
+                    else{
+                        elemento->compLex = NUMEROBINARIO;
+                    }
                     devolverCaracter();
                     nuevoLexema();
                 }
                 else{ // Entrada inesperada, avisamos y ya analizamos posteriormente el símbolo como inicio de otro lexema
                     encontrado=1;
-                    elemento->compLex=NUMEROBINARIO;
-                    ImprimirError(6,numLinea);
+                    if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                        ImprimirError(10,numLinea);
+                        elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                        elemento->lexema = calloc(1, sizeof(char));
+                        elemento->lexema[0] = '\n';
+                    }
+                    else {
+                        elemento->compLex = NUMEROBINARIO;
+                        ImprimirError(6, numLinea);
+                    }
                     devolverCaracter();
                     nuevoLexema();
                 }
@@ -521,14 +557,30 @@ void buscarDelimitadorNumero(tipoelem * elemento){
                 else{
                     if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<48) || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127) ){ // Si es delimitador de número se ha encontrado delimitador
                         encontrado=1;
-                        elemento->compLex=NUMEROHEXADECIMAL;
-                        devolverCaracter();
+                        if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                            ImprimirError(10,numLinea);
+                            elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                            elemento->lexema = calloc(1, sizeof(char));
+                            elemento->lexema[0] = '\n';
+                        }
+                        else{
+                            elemento->compLex=NUMEROHEXADECIMAL;
+                            devolverCaracter();
+                        }
                         nuevoLexema();
                     }
                     else{ // Entrada inesperada, avisamos y ya analizamos posteriormente el símbolo como inicio de otro lexema
                         encontrado=1;
-                        elemento->compLex=NUMEROHEXADECIMAL;
-                        ImprimirError(6,numLinea);
+                        if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                            ImprimirError(10,numLinea);
+                            elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                            elemento->lexema = calloc(1, sizeof(char));
+                            elemento->lexema[0] = '\n';
+                        }
+                        else{
+                            elemento->compLex=NUMEROHEXADECIMAL;
+                            ImprimirError(6,numLinea);
+                        }
                         devolverCaracter();
                         nuevoLexema();
                     }
@@ -550,11 +602,18 @@ void buscarDelimitadorNumero(tipoelem * elemento){
                     }
                     else{
                         if(elemento->compLex!=NUMERODECIMAL && elemento->compLex!=NUMEROCIENTIFICO && elemento->compLex!=NUMEROENTERO){ // Si no se transformo en la comprobación en decimal ni científico ni tiene ya valor de entero
-                            elemento->compLex=NUMEROENTERO;
+                            if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                                ImprimirError(10,numLinea);
+                                elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                elemento->lexema = calloc(1, sizeof(char));
+                                elemento->lexema[0] = '\n';
+                            }
+                            else {
+                                elemento->compLex = NUMEROENTERO;
+                            }
                         }
                         devolverCaracter();
                         nuevoLexema();
-
                     }
                 }
             }
@@ -572,7 +631,15 @@ void buscarDelimitadorNumero(tipoelem * elemento){
             devolverCaracter();
             nuevoLexema(); // Actualizamos los punteros del centinela
             if(elemento->compLex!=NUMERODECIMAL && elemento->compLex!=NUMEROCIENTIFICO){ // Si no se transformo en la comprobacion en decimal ni científico es un decimal
-                elemento->compLex=NUMEROENTERO;
+                if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                    ImprimirError(10,numLinea);
+                    elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                    elemento->lexema = calloc(1, sizeof(char));
+                    elemento->lexema[0] = '\n';
+                }
+                else{
+                    elemento->compLex = NUMEROENTERO;
+                }
             }
         }
     }
@@ -592,8 +659,10 @@ void buscarDelimitadorComillaSimple(tipoelem * elemento){
         }
         else{
             if(caracter=='\n' || caracter=='$'){ // Si encontramos el \n o un $ (fin de fichero) error al delimitar el literal
+                devolverCaracter();
                 ImprimirError(7,numLinea);
-                elemento->lexema=realloc(elemento->lexema,sizeof(char));
+                elemento->lexema=realloc(elemento->lexema, sizeof(char));
+                elemento->lexema=calloc(1, sizeof(char));
                 elemento->lexema[0]='\n';
                 encontrado=1;
             }
@@ -615,8 +684,15 @@ void buscarDelimitadorComillaSimple(tipoelem * elemento){
             caracter=siguienteCaracter();
         }
         else{ // Si se encuentra el delimitador
-            elemento->compLex=CADENALITERAL;
-            devolverCaracter();
+            if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                ImprimirError(10,numLinea);
+                elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                elemento->lexema = calloc(1, sizeof(char));
+                elemento->lexema[0] = '\n';
+            }
+            else {
+                elemento->compLex = CADENALITERAL;
+            }
             nuevoLexema(); // Actualizamos los punteros del centinela
         }
     }
@@ -625,7 +701,7 @@ void buscarDelimitadorComillaSimple(tipoelem * elemento){
 //  Función que busca el delimitador de un lexema que empieza por "
 void buscarDelimitadorComillaDoble(tipoelem * elemento){
     char caracter=siguienteCaracter();
-    int encontrado=0, tam=strlen(elemento->lexema); // Variable para saber si se encontró el delimitador y variable para reservar el tamaño del lexema
+    int encontrado=0,error=0, tam=strlen(elemento->lexema); // Variable para saber si se encontró el delimitador y variable para reservar el tamaño del lexema
 
     while(encontrado==0){ // Repetiremos el proceso hasta que se encuentre el delimitador
         tam++;
@@ -636,8 +712,10 @@ void buscarDelimitadorComillaDoble(tipoelem * elemento){
         }
         else{
             if(caracter=='\n' || caracter=='$'){ // Si encontramos el \n o un $ (fin de fichero) error al delimitar el literal
-                ImprimirError(7,numLinea);
-                elemento->lexema=realloc(elemento->lexema,sizeof(char));
+                devolverCaracter();
+                ImprimirError(8,numLinea);
+                elemento->lexema=realloc(elemento->lexema, sizeof(char));
+                elemento->lexema=calloc(1, sizeof(char));
                 elemento->lexema[0]='\n';
                 encontrado=1;
             }
@@ -659,8 +737,15 @@ void buscarDelimitadorComillaDoble(tipoelem * elemento){
             caracter=siguienteCaracter();
         }
         else{ // Si se encuentra el delimitador
-            elemento->compLex=CADENALITERAL;
-            devolverCaracter();
+            if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                ImprimirError(10,numLinea);
+                elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                elemento->lexema = calloc(1, sizeof(char));
+                elemento->lexema[0] = '\n';
+            }
+            else {
+                elemento->compLex = CADENALITERAL;
+            }
             nuevoLexema(); // Actualizamos los punteros del centinela
         }
     }
@@ -704,15 +789,31 @@ int delimitadorNumeroEncontrado(char caracter, tipoelem * elemento){
                     caracter=siguienteCaracter();
                     if(decimal==1){
                         if(elemento->compLex!=NUMEROCIENTIFICO && elemento->compLex!=NUMERODECIMAL){
-                            elemento->compLex=NUMERODECIMAL;
+                            if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                                ImprimirError(10,numLinea);
+                                elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                elemento->lexema = calloc(1, sizeof(char));
+                                elemento->lexema[0]= '\n';
+                            }
+                            else {
+                                elemento->compLex = NUMERODECIMAL;
+                            }
                         }
                     }
                 }
                 return decimal;
             }
             else{
-                elemento->compLex=NUMEROENTERO;
-                ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                    ImprimirError(10,numLinea);
+                    elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                    elemento->lexema = calloc(1, sizeof(char));
+                    elemento->lexema[0] = '\n';
+                }
+                else {
+                    elemento->compLex = NUMEROENTERO;
+                    ImprimirError(6, numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                }
                 devolverCaracter();
                 return 1;
             }
@@ -745,19 +846,44 @@ int delimitadorNumeroEncontrado(char caracter, tipoelem * elemento){
                                 // Si pertenece al conjunto de caracteres que delimitan la entrada --> Tabulación, line feed, Retorno de carro Espacio ! " # $ % & ' ( ) * + , -  /  : ; < = > ? @ [ \ ] ^ ` { | } ~  (NO ESTÁ EL PUNTO)
                                 if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<46) || caracter==47 || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127)){
                                     encontrado=1;
-                                    elemento->compLex=NUMEROCIENTIFICO;
+                                    if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                                        ImprimirError(10,numLinea);
+                                        elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                        elemento->lexema = calloc(1, sizeof(char));
+                                        elemento->lexema[0] = '\n';
+                                    }
+                                    else {
+                                        elemento->compLex = NUMEROCIENTIFICO;
+                                    }
                                 }
                                 else{ // Se ha encontrado un caracter que no se esperaba, se imprimirá un aviso, se devolverá todo lo que se tiene como lexema y se continuará tratando el caracter inesperado como principio de lexema
-                                    ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
                                     encontrado=1;
-                                    elemento->compLex=NUMEROCIENTIFICO;
+                                    if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                                        ImprimirError(10,numLinea);
+                                        elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                        elemento->lexema = calloc(1, sizeof(char));
+                                        elemento->lexema[0] = '\n';
+                                    }
+                                    else{
+                                        ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                                        elemento->compLex=NUMEROCIENTIFICO;
+                                    }
+                                    devolverCaracter();
                                 }
                             }
                         }
                     }
                     else{ // Si no aparece un número no era un número científico, por lo que devolvemos el símbolo
-                        ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
-                        elemento->compLex=NUMEROENTERO;
+                        if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                            ImprimirError(10,numLinea);
+                            elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                            elemento->lexema = calloc(1, sizeof(char));
+                            elemento->lexema[0] = '\n';
+                        }
+                        else {
+                            ImprimirError(6, numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                            elemento->compLex = NUMEROENTERO;
+                        }
                         devolverCaracter();
                     }
                 }
@@ -780,19 +906,44 @@ int delimitadorNumeroEncontrado(char caracter, tipoelem * elemento){
                                 // Si pertenece al conjunto de caracteres que delimitan la entrada --> Tabulación, line feed, Retorno de carro Espacio ! " # $ % & ' ( ) * + , -  /  : ; < = > ? @ [ \ ] ^ ` { | } ~  (NO ESTÁ EL PUNTO)
                                 if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<46) || caracter==47 || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127)){
                                     encontrado=1;
-                                    elemento->compLex=NUMEROCIENTIFICO;
+                                    if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                                        ImprimirError(10,numLinea);
+                                        elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                        elemento->lexema = calloc(1, sizeof(char));
+                                        elemento->lexema[0] = '\n';
+                                    }
+                                    else {
+                                        elemento->compLex = NUMEROCIENTIFICO;
+                                    }
                                 }
                                 else{ // Se ha encontrado un caracter que no se esperaba, se imprimirá un aviso, se devolverá todo lo que se tiene como lexema y se continuará tratando el caracter inesperado como principio de lexema
-                                    ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
                                     encontrado=1;
-                                    elemento->compLex=NUMEROCIENTIFICO;
+                                    if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                                        ImprimirError(10,numLinea);
+                                        elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                        elemento->lexema = calloc(1, sizeof(char));
+                                        elemento->lexema[0] = '\n';
+                                    }
+                                    else{
+                                        ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                                        elemento->compLex=NUMEROCIENTIFICO;
+                                    }
+
                                 }
                             }
                         }
                     }
                     else{
-                        ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
-                        elemento->compLex=NUMEROENTERO;
+                        if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                            ImprimirError(10,numLinea);
+                            elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                            elemento->lexema = calloc(1, sizeof(char));
+                            elemento->lexema[0] = '\n';
+                        }
+                        else {
+                            ImprimirError(6, numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                            elemento->compLex = NUMEROENTERO;
+                        }
                     }
                 }
                 return 1;
@@ -847,19 +998,43 @@ int delimitadorNumeroDecimalEncontrado(char caracter, tipoelem * elemento){
                             // Si pertenece al conjunto de caracteres que delimitan la entrada --> Tabulación, line feed, Retorno de carro Espacio ! " # $ % & ' ( ) * + , -  /  : ; < = > ? @ [ \ ] ^ ` { | } ~  (NO ESTÁ EL PUNTO)
                             if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<46) || caracter==47 || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127)){
                                 encontrado=1;
-                                elemento->compLex=NUMEROCIENTIFICO;
+                                if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                                    ImprimirError(10,numLinea);
+                                    elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                    elemento->lexema = calloc(1, sizeof(char));
+                                    elemento->lexema[0] = '\n';
+                                }
+                                else {
+                                    elemento->compLex = NUMEROCIENTIFICO;
+                                }
                             }
                             else{ // Se ha encontrado un caracter que no se esperaba, se imprimirá un aviso, se devolverá todo lo que se tiene como lexema y se continuará tratando el caracter inesperado como principio de lexema
-                                ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
                                 encontrado=1;
-                                elemento->compLex=NUMEROCIENTIFICO;
+                                if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                                    ImprimirError(10,numLinea);
+                                    elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                    elemento->lexema = calloc(1, sizeof(char));
+                                    elemento->lexema[0] = '\n';
+                                }
+                                else {
+                                    ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                                    elemento->compLex = NUMEROCIENTIFICO;
+                                }
                             }
                         }
                     }
                 }
                 else{ // Si no aparece un número no era un número científico, por lo que devolvemos el símbolo
-                    ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
-                    elemento->compLex=NUMERODECIMAL;
+                    if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                        ImprimirError(10,numLinea);
+                        elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                        elemento->lexema = calloc(1, sizeof(char));
+                        elemento->lexema[0] = '\n';
+                    }
+                    else {
+                        ImprimirError(6, numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                        elemento->compLex = NUMERODECIMAL;
+                    }
                     devolverCaracter();
                 }
             }
@@ -882,19 +1057,45 @@ int delimitadorNumeroDecimalEncontrado(char caracter, tipoelem * elemento){
                             // Si pertenece al conjunto de caracteres que delimitan la entrada --> Tabulación, line feed, Retorno de carro Espacio ! " # $ % & ' ( ) * + , -  /  : ; < = > ? @ [ \ ] ^ ` { | } ~  (NO ESTÁ EL PUNTO)
                             if(caracter==9 || caracter==10 || caracter==13 || (caracter>31 && caracter<46) || caracter==47 || (caracter>57 && caracter<65) || (caracter>90 && caracter<95) || caracter==96 || (caracter>122 && caracter<127)){
                                 encontrado=1;
-                                elemento->compLex=NUMEROCIENTIFICO;
+                                if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                                    ImprimirError(10,numLinea);
+                                    elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                    elemento->lexema = calloc(1, sizeof(char));
+                                    elemento->lexema[0] = '\n';
+                                }
+                                else {
+                                    elemento->compLex = NUMEROCIENTIFICO;
+                                }
                             }
                             else{ // Se ha encontrado un caracter que no se esperaba, se imprimirá un aviso, se devolverá todo lo que se tiene como lexema y se continuará tratando el caracter inesperado como principio de lexema
-                                ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
                                 encontrado=1;
-                                elemento->compLex=NUMEROCIENTIFICO;
+                                if(strlen(elemento->lexema)>tamMaxLexema){ // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                                    ImprimirError(10,numLinea);
+                                    elemento->lexema = realloc(elemento->lexema, (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                                    elemento->lexema = calloc(1, sizeof(char));
+                                    elemento->lexema[0] = '\n';
+                                }
+                                else {
+                                    ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                                    elemento->compLex = NUMEROCIENTIFICO;
+                                }
                             }
                         }
                     }
                 }
-                else{
-                    ImprimirError(6,numLinea); // Imprimimos que se ha encontrado un caracter no esperado
-                    elemento->compLex=NUMERODECIMAL;
+                else {
+                    if (strlen(elemento->lexema) >
+                        tamMaxLexema) { // Si se excede el tamaño máximo de lexema no se devolverá el lexema y se intentará devolver el siguiente
+                        ImprimirError(10, numLinea);
+                        elemento->lexema = realloc(elemento->lexema,
+                                                   (sizeof(char))); // Reservamos espacio en la cadena para un caracter
+                        elemento->lexema = calloc(1, sizeof(char));
+                        elemento->lexema[0] = '\n';
+                    }
+                    else{
+                        ImprimirError(6, numLinea); // Imprimimos que se ha encontrado un caracter no esperado
+                        elemento->compLex = NUMERODECIMAL;
+                    }
                 }
             }
             return 1;

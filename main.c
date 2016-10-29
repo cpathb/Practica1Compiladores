@@ -6,13 +6,19 @@
 int main( int argc, const char* argv[] ){
     inicializarTablasimbolos(); // Primero tabla de simbolos porque abre un archivo y lo cierra al acabar
     inicializarVariablesSistemaEntrada(); // Abre el archivo y no lo cierra hasta que acaba de leerlo
+    inicializarAnalizadorLexico();
+
     tipoelem * elemento;
-    //do{
-    elemento=siguienteLexema();
-    printf("%s -- %d\n",elemento->lexema,elemento->compLex);
-    free(elemento);
-    //}while(lex!=NULL){
-    //printf("\nContenido de la Tabla de Símbolos:\n");
-    //ImprimirTablaSimbolos();
-    //destruirTablasimbolos();
+    elemento = siguienteLexema(); // Solicitamos el primer lexema
+    while(elemento->lexema!=NULL && elemento->compLex!=-1){ // Mientras no se haya llegado al final de archivo y se nos devuelva ese lexema y ese complemento léxico
+        printf("%s -- %d\n", elemento->lexema, elemento->compLex); // Imprimimos el lexema y el complemento léxico
+        free(elemento); // Liberamos el elemento
+        elemento = siguienteLexema(); // Solicitamos el siguiente lexema
+    }
+
+    printf("\n\nContenido de la Tabla de Símbolos:\n");
+    printf("----------------------------------\n");
+    ImprimirTablaSimbolos();
+    destruirSistemaEntrada();
+    destruirTablasimbolos();
 }
