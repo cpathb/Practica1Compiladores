@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "GestionErrores.h"
+#include "gestionErrores.h"
 #pragma once
 
 struct tipo{

@@ -8,10 +8,10 @@
       <sourceFolder url="file://$MODULE_DIR$/analizadorLexico.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tablaSimbolos.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/sistemaEntrada.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/SistemaEntrada.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tablaSimbolos.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/gestionErrores.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/sistemaEntrada.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/SistemaEntrada.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/gestionErrores.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/lista.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tabla_hash_encadenamiento.c" isTestSource="false" />
